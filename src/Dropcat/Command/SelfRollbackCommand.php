@@ -22,11 +22,16 @@ class SelfRollbackCommand extends DropcatCommand
             $result = $updater->rollback();
             if ($result) {
                 $output->writeln("<info>Succesfully roll-backed version.</info>");
+
+                return 0;
             } else {
                 $output->writeln("<info>Roll-back failed.</info>");
             }
         } catch (\Exception $e) {
-            $output->writeln("<info>Something went wrong, sorry.</info>");
+            $msg = "Something went wrong, sorry." . $e->getMessage();
+            $output->writeln("<error>$msg</error>");
         }
+
+        return 1;
     }
 }

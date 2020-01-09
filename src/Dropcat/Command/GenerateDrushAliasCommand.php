@@ -89,6 +89,9 @@ To override config in dropcat.yml, using options, creates alias to stage env.
         }
         else {
             echo 'I cannot create any alias, please check your --env parameter';
+            return 1;
         }
+
+        return 0;
     }
 }

@@ -12,11 +12,11 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 /**
  * Backup a site db and files.
  */
-class BackupCommand extends DropcatCommand
-{
+class BackupCommand extends DropcatCommand {
+
     protected static $defaultName = 'backup';
-    protected function configure()
-    {
+
+    protected function configure() {
         $HelpText = 'The <info>%command.name%</info> command will create a backup' .
           'of sites database or/and the whole web site folder.';
         $this->setName("backup")
@@ -24,124 +24,123 @@ class BackupCommand extends DropcatCommand
           ->setDescription("backup site")
           ->setDefinition(
             [
-            new InputOption(
+              new InputOption(
                 'app-name',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'application name',
                 $this->configuration->localEnvironmentAppName()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'mysql-host',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'mysql host',
                 $this->configuration->mysqlEnvironmentHost()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'mysql-port',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'mysql port',
                 $this->configuration->mysqlEnvironmentPort()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'mysql-db',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'mysql db',
                 $this->configuration->mysqlEnvironmentDataBase()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'mysql-user',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'mysql user',
                 $this->configuration->mysqlEnvironmentUser()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'mysql-password',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'mysql password',
                 $this->configuration->mysqlEnvironmentPassword()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'backup-path',
                 'b',
                 InputOption::VALUE_OPTIONAL,
                 'backup path',
                 $this->configuration->siteEnvironmentBackupPath()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'time-out',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'time out',
                 $this->configuration->timeOut()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'backup-site',
-                null,
+                NULL,
                 InputOption::VALUE_NONE,
                 'backup whole site'
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'no-db-backup',
-                null,
+                NULL,
                 InputOption::VALUE_NONE,
                 'no database backup',
-                null
-            ),
-            new InputOption(
+                NULL
+              ),
+              new InputOption(
                 'backup-name',
-                null,
+                NULL,
                 InputOption::VALUE_OPTIONAL,
                 'name of backup',
-                null
-            ),
-            new InputOption(
+                NULL
+              ),
+              new InputOption(
                 'server',
                 's',
                 InputOption::VALUE_OPTIONAL,
                 'server',
                 $this->configuration->remoteEnvironmentServerName()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'user',
                 'u',
                 InputOption::VALUE_OPTIONAL,
                 'User (ssh)',
                 $this->configuration->remoteEnvironmentSshUser()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'ssh-port',
                 'p',
                 InputOption::VALUE_OPTIONAL,
                 'SSH port',
                 $this->configuration->remoteEnvironmentSshPort()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'web-root',
                 'w',
                 InputOption::VALUE_OPTIONAL,
                 'web root',
                 $this->configuration->remoteEnvironmentWebRoot()
-            ),
-            new InputOption(
+              ),
+              new InputOption(
                 'alias',
                 'a',
                 InputOption::VALUE_OPTIONAL,
                 'symlink alias',
                 $this->configuration->remoteEnvironmentAlias()
-            ),
-              ]
-        )
+              ),
+            ]
+          )
           ->setHelp($HelpText);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output) {
         $app = $input->getOption('app-name');
         $mysql_host = $input->getOption('mysql-host');
         $mysql_port = $input->getOption('mysql-port');
@@ -164,33 +163,75 @@ class BackupCommand extends DropcatCommand
             $backup_name = $timestamp;
         }
         $output->writeln("<info>$this->start backup started</info>");
-        if ($no_db_backup != true) {
-            $backupDb = new Process(
-                "mkdir -p $backup_path/$app &&
-                mysqldump --port=$mysql_port -u $mysql_user -p$mysql_password -h $mysql_host $mysql_db  > $backup_path/$app/$backup_name.sql"
-            );
-            $backupDb->setTimeout($timeout);
-            $backupDb->run();
-            if (!$backupDb->isSuccessful()) {
-                throw new ProcessFailedException($backupDb);
+        if ($no_db_backup != TRUE) {
+            $mkdir = ['mkdir', '-p', "$backup_path/$app"];
+            $mysqldump = [
+              'mysqldump',
+              "--port=$mysql_port",
+              '-u',
+              $mysql_user,
+              "-p$mysql_password",
+              '-h',
+              $mysql_host,
+              $mysql_db,
+              '>',
+              "$backup_path/$app/$backup_name.sql",
+            ];
+            $mkdirProcess = new Process($mkdir);
+            $mkdirProcess->run();
+            if ($mkdirProcess->isSuccessful()) {
+                $backupDb = new Process($mysqldump);
+                $backupDb->setTimeout($timeout);
+                $backupDb->run();
+                if (!$backupDb->isSuccessful()) {
+                    throw new ProcessFailedException($backupDb);
+                }
+                if ($output->isVerbose()) {
+                    $out = $backupDb->getOutput();
+                    $output->writeln("<comment>$out</comment>");
+                }
             }
-            if ($output->isVerbose()) {
-                echo $backupDb->getOutput();
+            else {
+                $msg = $mkdirProcess->getErrorOutput();
+                $output->writeln("<error>Could not create backup directory: $msg</error>");
+                return $mkdirProcess->getExitCode();
             }
             $output->writeln("<info>$this->mark db backup done</info>");
         }
-        if ($backup_site === true) {
-            $rsyncSite = new Process(
-                "mkdir -p $backup_path/$app &&
-                rsync -L -a -q -P -e \"ssh -p $ssh_port -o LogLevel=Error\" $user@$server:$web_root/$alias $backup_path/$app"
-            );
-            $rsyncSite->setTimeout($timeout);
-            $rsyncSite->run();
-            if (!$rsyncSite->isSuccessful()) {
-                throw new ProcessFailedException($rsyncSite);
+        if ($backup_site === TRUE) {
+            $mkdir = ['mkdir', '-p', "$backup_path/$app"];
+            $mkdirProcess = new Process($mkdir);
+            $mkdirProcess->run();
+            if ($mkdirProcess->isSuccessful()) {
+                $rsync = [
+                  'rsync',
+                  '-L',
+                  '-a',
+                  '-q',
+                  '-P',
+                  '-e',
+                  'ssh',
+                  '-p',
+                  "$ssh_port",
+                  '-o',
+                  'LogLevel=Error',
+                  "$user@$server:$web_root/$alias $backup_path/$app",
+                ];
+                $rsyncSite = new Process($rsync);
+                $rsyncSite->setTimeout($timeout);
+                $rsyncSite->run();
+                if (!$rsyncSite->isSuccessful()) {
+                    throw new ProcessFailedException($rsyncSite);
+                }
+                if ($output->isVerbose()) {
+                    $out = $rsyncSite->getOutput();
+                    $output->writeln("<comment>$out</comment>");
+                }
             }
-            if ($output->isVerbose()) {
-                echo $rsyncSite->getOutput();
+            else {
+                $msg = $mkdirProcess->getErrorOutput();
+                $output->writeln("<error>Could not create backup directory: $msg</error>");
+                return $mkdirProcess->getExitCode();
             }
             $output->writeln("<info>$this->mark site backup done</info>");
         }

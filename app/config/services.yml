@@ -95,12 +95,12 @@ services:
       lazy: true
       tags:
         - {name: console.command}
-    dropcat.command.cache-recreate:
-      class: Dropcat\Command\CacheRecreateCommand
+    dropcat.command.cache-rebuild:
+      class: Dropcat\Command\CacheRebuildCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-        - {name: console.command, command: cache-recreate}
+        - {name: console.command, command: cache-rebuild}
     dropcat.command.get:db-backup:
       class: Dropcat\Command\GetDatabaseBackupCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
