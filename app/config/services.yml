@@ -10,12 +10,19 @@ services:
     dropcat.configuration:
       class: Dropcat\Services\Configuration
       factory: ['Dropcat\Services\DropcatConfigurationFactory', createConfigurationService]
+    dropcat.command.about:
+      class: Dropcat\Command\AboutCommand
+      arguments: ['@DropcatContainer','@dropcat.configuration']
+      lazy: true
+      tags:
+        - {name: console.command, command: about}
+
     dropcat.command.tar:
-        class: Dropcat\Command\TarCommand
-        arguments: ['@DropcatContainer','@dropcat.configuration']
-        lazy: true
-        tags:
-          - {name: console.command, command: tar}
+      class: Dropcat\Command\TarCommand
+      arguments: ['@DropcatContainer','@dropcat.configuration']
+      lazy: true
+      tags:
+        - {name: console.command, command: tar}
     dropcat.command.backup:
       class: Dropcat\Command\BackupCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
@@ -76,24 +83,6 @@ services:
       lazy: true
       tags:
         - {name: console.command, command: self-rollback}
-    dropcat.command.init:
-      class: Dropcat\Command\InitCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: init}
-    dropcat.command.init-wp:
-      class: Dropcat\Command\InitWPCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: init:wp}
-    dropcat.command.about:
-      class: Dropcat\Command\AboutCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: about}
     dropcat.command.site-install:
       class: Dropcat\Command\SiteInstallCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
@@ -106,36 +95,12 @@ services:
       lazy: true
       tags:
         - {name: console.command}
-    dropcat.command.jenkins-build:
-      class: Dropcat\Command\JenkinsBuildCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: jenkins-build}
-    dropcat.command.entity-update:
-      class: Dropcat\Command\EntityUpdateCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: entity-update}
     dropcat.command.cache-recreate:
       class: Dropcat\Command\CacheRecreateCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
         - {name: console.command, command: cache-recreate}
-    dropcat.command.cache-clear:
-      class: Dropcat\Command\CacheClearCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: cache-clear}
-    dropcat.command.check-connection:
-      class: Dropcat\Command\CheckConnectionCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: check-connection}
     dropcat.command.get:db-backup:
       class: Dropcat\Command\GetDatabaseBackupCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
@@ -153,32 +118,9 @@ services:
       arguments: ['@DropcatContainer','@dropcat.configuration']
       tags:
         - {name: console.command}
-    dropcat.command.rsync:to:
-      class: Dropcat\Command\RsyncToCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.rsync:from:
-      class: Dropcat\Command\RsyncFromCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.run-remote:
-      class: Dropcat\Command\RunRemoteCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
+
     dropcat.command.vhost:create:
       class: Dropcat\Command\VhostCreateCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.vhost:delete:
-      class: Dropcat\Command\VhostDeleteCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
@@ -207,7 +149,6 @@ services:
       lazy: true
       tags:
         - {name: console.command}
-
     dropcat.command.update:
       class: Dropcat\Command\UpdateCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
@@ -226,26 +167,8 @@ services:
       lazy: true
       tags:
         - {name: console.command}
-    dropcat.command.init:drupal:
-      class: Dropcat\Command\InitDrupalCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.init:wp:
-      class: Dropcat\Command\InitWordpressCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
     dropcat.command.debug:check-connection:
       class: Dropcat\Command\DebugCheckConnectionCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.generate:config:
-      class: Dropcat\Command\GenerateConfigCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
@@ -255,39 +178,28 @@ services:
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-            - {name: console.command}
-
+        - {name: console.command}
     dropcat.command.multi:clone:
       class: Dropcat\Command\MultiCloneCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-            - {name: console.command, command: multi:clone}
-
+        - {name: console.command, command: multi:clone}
     dropcat.command.sites:backup:
       class: Dropcat\Command\SitesBackupCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-            - {name: console.command, command: sites:backup}
-
-
+        - {name: console.command, command: sites:backup}
     dropcat.command.reset:opcache:
       class: Dropcat\Command\ResetOpcacheCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-            - {name: console.command, command: reset:opcache}
-
+        - {name: console.command, command: reset:opcache}
     dropcat.command.security:drupal:
       class: Dropcat\Command\SecurityDrupalCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
       tags:
-            - {name: console.command, command: security:drupal}
-    dropcat.command.deploy:note:
-      class: Dropcat\Command\DeployNoteCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-            - {name: console.command, command: security:drupal}
+        - {name: console.command, command: security:drupal}

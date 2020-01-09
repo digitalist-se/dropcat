@@ -22,7 +22,7 @@ class BackupCommand extends DropcatCommand
         $this->setName("backup")
           ->addUsage('-b /backup/dir')
           ->setDescription("backup site")
-        ->setDefinition(
+          ->setDefinition(
             [
             new InputOption(
                 'app-name',
@@ -163,9 +163,7 @@ class BackupCommand extends DropcatCommand
         if (!isset($backup_name)) {
             $backup_name = $timestamp;
         }
-
         $output->writeln("<info>$this->start backup started</info>");
-
         if ($no_db_backup != true) {
             $backupDb = new Process(
                 "mkdir -p $backup_path/$app &&
@@ -197,5 +195,6 @@ class BackupCommand extends DropcatCommand
             $output->writeln("<info>$this->mark site backup done</info>");
         }
         $output->writeln("<info>$this->heart backup finished</info>");
+        return 0;
     }
 }

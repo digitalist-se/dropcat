@@ -20,8 +20,9 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 To override config in dropcat.yml, using options:
 <info>dropcat cache-recreate -d mysite</info>';
 
-        $this->setName("cache-recreate")
+        $this->setName("cache:recreate")
             ->setDescription("Recreates cache (d8)")
+            ->setAliases(['cache-recreate'])
             ->setDefinition(
                 array(
                     new InputOption(
