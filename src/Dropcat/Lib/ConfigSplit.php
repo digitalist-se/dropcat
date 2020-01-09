@@ -16,11 +16,18 @@ class ConfigSplit
 
     public $verbose;
 
-    public function __construct($verbose = false)
+    /**
+     * ConfigSplit constructor.
+     * @param bool $verbose
+     */
+    public function __construct(bool $verbose = false)
     {
         $this->verbose = $verbose;
     }
 
+    /**
+     * @param $config
+     */
     public function export($config)
     {
         $alias = $config['drush-alias'];
@@ -29,7 +36,7 @@ class ConfigSplit
             $v = ' -v';
         }
         $task= new Process(
-            "drush @$alias csex --yes $v"
+            ['drush', "@$alias", 'csex', '--yes', "$v"]
         );
         $task->setTimeout(999);
         $task->run();

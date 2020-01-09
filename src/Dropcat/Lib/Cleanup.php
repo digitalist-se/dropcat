@@ -1,8 +1,6 @@
 <?php
 namespace Dropcat\Lib;
 
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Exception;
 
 /**
@@ -21,6 +19,10 @@ class Cleanup
         $this->verbose = $verbose;
     }
 
+
+    /**
+     * @param $backup_dir
+     */
     public function deleteAutomaticDbBackups($backup_dir)
     {
 
@@ -40,7 +42,11 @@ class Cleanup
         }
     }
 
-    public function deleteOldRollbackTrackers($yaml_dir)
+    /**
+     * @param string $yaml_dir
+     * @return void
+     */
+    public function deleteOldRollbackTrackers(string $yaml_dir)
     {
         // Cycle through all files.
         foreach (glob($yaml_dir."*.yml") as $file) {

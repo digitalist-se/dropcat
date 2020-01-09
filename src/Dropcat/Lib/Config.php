@@ -17,6 +17,9 @@ class Config
     public $mark;
     public $output;
 
+    /**
+     * Config constructor.
+     */
     public function __construct()
     {
         $this->output = new ConsoleOutput();
@@ -25,6 +28,10 @@ class Config
         $this->mark = $style->colorize('yellow', $mark);
     }
 
+    /**
+     * @param $config
+     * @param $verbose
+     */
     public function import($config, $verbose)
     {
         $alias = $config['drush-alias'];
@@ -33,7 +40,7 @@ class Config
             $v = ' -v';
         }
         $import= new Process(
-            "drush @$alias cim --yes $v"
+            ['drush', "@$alias", "cim", "--yes", "$v"]
         );
         $import->setTimeout(999);
         $import->run();
@@ -45,6 +52,10 @@ class Config
         $this->output->writeln("<info>$this->mark config imported for $alias</info>");
     }
 
+    /**
+     * @param $config
+     * @param $verbose
+     */
     public function silentImport($config, $verbose)
     {
         $alias = $config['drush-alias'];
@@ -53,7 +64,7 @@ class Config
             $v = ' -v';
         }
         $import= new Process(
-            "drush @$alias cim --yes --quiet"
+            ['drush', "@$alias", 'cim', '--yes', '--quiet']
         );
         $import->disableOutput();
         $import->setTimeout(999);
@@ -63,6 +74,10 @@ class Config
     }
 
 
+    /**
+     * @param $config
+     * @param $verbose
+     */
     public function importPartial($config, $verbose)
     {
         $alias = $config['drush-alias'];
@@ -71,11 +86,10 @@ class Config
             $v = ' -v';
         }
         $import= new Process(
-            "drush @$alias cim --partial --yes $v"
+            ['drush', "@$alias", "cim", "--partial", "--yes", "$v"]
         );
         $import->setTimeout(999);
         $import->run();
-        // executes after the command finishes
         if (!$import->isSuccessful()) {
             throw new ProcessFailedException($import);
         }
@@ -83,6 +97,11 @@ class Config
         $this->output->writeln("<info>$this->mark config imported for $alias</info>");
     }
 
+    /**
+     * @param $config
+     * @param $split
+     * @param $verbose
+     */
     public function configSplitExport($config, $split, $verbose)
     {
         $alias = $config['drush-alias'];
@@ -91,7 +110,7 @@ class Config
             $v = ' -v';
         }
         $enable = new Process(
-            "drush @$alias en config_split --yes $v && drush @$alias cc drush --yes $v"
+            ['drush', "@$alias", 'en', 'config_split', '--yes', '$v', '&&', 'drush', '@$alias', 'cc', 'drush', '--yes', "$v"]
         );
         $enable->setTimeout(999);
         $enable->run();
@@ -102,11 +121,10 @@ class Config
         echo $enable->getOutput();
 
         $import= new Process(
-            "drush @$alias csex $split --yes $v"
+            ['drush', "@$alias", 'csex', "$split", '--yes', '$v']
         );
         $import->setTimeout(999);
         $import->run();
-        // executes after the command finishes
         if (!$import->isSuccessful()) {
             throw new ProcessFailedException($import);
         }

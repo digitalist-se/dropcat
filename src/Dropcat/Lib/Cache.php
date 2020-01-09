@@ -6,9 +6,9 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
- * Class Install
+ * Class Cache
  *
- * Checking if it is Drupal, and which version.
+ * Rebuild cache
  *
  * @package Dropcat\Lib
  */
@@ -26,14 +26,19 @@ class Cache
         $this->output = new ConsoleOutput();
     }
 
-    public function rebuild($config, $verbose)
+    /**
+     * @param $config
+     * @param $verbose
+     * @return int
+     */
+    final function rebuild($config, $verbose)
     {
         // create strings from array.
         $alias = $config['drush-alias'];
 
         $this->output->writeln("<info>$this->mark starting rebuilding cache</info>");
         $rebuild = new Process(
-            "drush @$alias cr"
+            ['drush' ,"@$alias cr"]
         );
         $rebuild->setTimeout(999);
         $rebuild->run();
@@ -43,8 +48,7 @@ class Cache
             throw new ProcessFailedException($rebuild);
         }
         echo $rebuild->getOutput();
-
-
         $this->output->writeln("<info>$this->mark finnished rebuilding cache</info>");
+        return 0;
     }
 }

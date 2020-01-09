@@ -1,0 +1,28 @@
+version: "3.1"
+services:
+  jenkins:
+    container_name: jenkins
+    image: "registry.wklive.net:5000/digi/jenkins-php-dropcat-node:php72"
+    restart: always
+    ports:
+      - 8080:8080
+      - 50000:50000
+      - 22:22
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      - jenkins-backup:/backup
+
+  web:
+    ports:
+      - 8081:80
+    container_name: web
+    build:
+      context: services/apache/
+    volumes:
+      - $PWD/apache:/var/www/html
+
+volumes:
+  jenkins-home:
+    driver: local
+  jenkins-backup:
+    driver: local
