@@ -3,7 +3,7 @@ services:
       class: Symfony\Component\Console\Application
       arguments:
         - 'dropcat'
-        - '1.0.2'
+        - '2-beta'
     symfony.console_output:
       class: Symfony\Component\Console\Output\ConsoleOutput
 
