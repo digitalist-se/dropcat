@@ -118,5 +118,6 @@ To run with default options (using config from dropcat.yml in the current dir):
         }
         $output->writeln('<info>Successfully logged in to server as user <question>' . $test_user . '</question> on <question>' . $hostname .'</question>.</info>');
         $ssh->disconnect();
+        return 0;
     }
 }
