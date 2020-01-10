@@ -14,7 +14,6 @@ services:
       - type: bind
         source: ./keys/id_rsa
         target: /var/id_rsa
-
   web:
     ports:
       - 8081:80
@@ -23,9 +22,27 @@ services:
       context: services/apache/
     volumes:
       - $PWD/apache:/var/www/html
-
+  db:
+    image: mariadb:10.4
+    container_name: db    
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'dropcat'
+      MYSQL_USER: 'dropcat'
+      MYSQL_PASS: 'dropcat'
+    volumes:
+      - db-volume:/var/lib/mysql
+    ports:
+      - 3306:3306
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - 8083:8080
 volumes:
   jenkins-home:
     driver: local
   jenkins-backup:
+    driver: local
+  db-volume:
     driver: local
