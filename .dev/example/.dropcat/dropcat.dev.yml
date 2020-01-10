@@ -9,7 +9,6 @@ local:
     tar_name: NULL
     tar_dir: /tmp/
     drush_folder: NULL
-    ssh_key_password: root
 
 remote:
   environment:
