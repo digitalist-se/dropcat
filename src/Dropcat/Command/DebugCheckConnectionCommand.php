@@ -107,8 +107,8 @@ To run with default options (using config from dropcat.yml in the current dir):
             $hostname = str_replace(array("\r", "\n"), '', trim($hostname));
 
             if (!$test_user) {
-                throw new Exception('Failed running test using ' . $identity_file . ' and user ' . $user . ' at ' . $server
-                . ' ' . $ssh->getLastError());
+                throw new Exception('Failed running test using ' . $identity_file . ' and user ' . $user
+                    . ' at ' . $server . ' ' . $ssh->getLastError());
             }
         } catch (Exception $e) {
             echo $e->getMessage() ."\n";
@@ -116,7 +116,8 @@ To run with default options (using config from dropcat.yml in the current dir):
             $ssh->disconnect();
             exit(1);
         }
-        $output->writeln('<info>Successfully logged in to server as user <question>' . $test_user . '</question> on <question>' . $hostname .'</question>.</info>');
+        $output->writeln('<info>Successfully logged in to server as user <question>' . $test_user .
+            '</question> on <question>' . $hostname .'</question>.</info>');
         $ssh->disconnect();
         return 0;
     }
