@@ -82,9 +82,11 @@ To run with default options (using config from dropcat.yml in the current dir):
 
         try {
             $login = $ssh->login($user, $auth);
-            if ($output->isVerbose()) {
+            if ($output->isDebug()) {
                 print_r($identity_file_content);
                 print_r($auth);
+            }
+            if ($output->isVerbose()) {
                 $output->writeln("<info>user: $user pass: $ssh_key_password server: $server</info>");
             }
             if (!$login) {
