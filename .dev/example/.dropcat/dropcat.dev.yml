@@ -1,24 +1,24 @@
-app_name: dropcat-default
+app_name: test
 local:
   environment:
-    app_path: /srv/www/dropcat/dropcat-default
+    app_path: /var/www/test
     tmp_path: /tmp
     build_id: 1
     separator: _
     db_import: /mydb/backup/db.sql
     tar_name: NULL
     tar_dir: /tmp/
-    ssh_key_password: NULL
     drush_folder: NULL
 
 remote:
   environment:
-    server: myhost
-    ssh_user: myuser
+    server: web
+    ssh_user: root
     ssh_port: 22
+    ssh_key_password: root
     target_path: /mypath
-    identity_file: my_private.key
-    web_root: /var/www/webroot
+    identity_file: /var/id_rsa
+    web_root: /var/www/html
     temp_folder: /tmp
     alias: mysite_latest
     target_dir: /tmp

@@ -1,9 +1,9 @@
-version: "3.1"
+version: "3.7"
 services:
   jenkins:
     container_name: jenkins
-    image: "registry.wklive.net:5000/digi/jenkins-php-dropcat-node:php72"
-    restart: always
+    build:
+      context: services/jenkins/
     ports:
       - 8080:8080
       - 50000:50000
@@ -11,6 +11,9 @@ services:
     volumes:
       - jenkins-home:/var/jenkins_home
       - jenkins-backup:/backup
+      - type: bind
+        source: ./keys/id_rsa
+        target: /var/id_rsa
 
   web:
     ports:

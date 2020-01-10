@@ -14,6 +14,10 @@ RUN echo "root:$sshpass" | chpasswd
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY sshd_config /etc/ssh/sshd_config
+RUN mkdir /root/.ssh
+COPY authorized_keys /root/.ssh/authorized_keys
+
+
 EXPOSE 22 80
 
 CMD ["/usr/bin/supervisord"]
