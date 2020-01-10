@@ -16,7 +16,6 @@ remote:
     server: web
     ssh_user: root
     ssh_port: 22
-    ssh_key_password: root
     target_path: /mypath
     identity_file: /var/id_rsa
     web_root: /var/www/html
