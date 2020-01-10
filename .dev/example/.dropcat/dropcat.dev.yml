@@ -9,6 +9,7 @@ local:
     tar_name: NULL
     tar_dir: /tmp/
     drush_folder: NULL
+    ssh_key_password: root
 
 remote:
   environment:
@@ -28,7 +29,7 @@ site:
     drush_alias: foo
     backup_path: backup
     config_name: NULL
-    original_path: /var/www/webroot/shared/some_path
+    original_path: /var/www/html/shared/some_path
     symlink: /var/www/webroot/mysite_latest/symlink_path
     url: http://mysite.com
     name: mystagesite
