@@ -19,7 +19,7 @@ class AboutCommand extends DropcatCommand {
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-        $output->writeln("<info>dropcat is a open source website delivery tool. " .
+        $output->writeln("<info>dropcat is an open source website delivery tool. " .
           "\ndeveloped by digitalist group sweden. meow! $this->cat" .
           "</info>");
         return 0;

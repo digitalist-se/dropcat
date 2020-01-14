@@ -165,30 +165,25 @@ class BackupCommand extends DropcatCommand {
         $output->writeln("<info>$this->start backup started</info>");
         if ($no_db_backup != TRUE) {
             $mkdir = ['mkdir', '-p', "$backup_path/$app"];
-            $mysqldump = [
-              'mysqldump',
-              "--port=$mysql_port",
-              '-u',
-              $mysql_user,
-              "-p$mysql_password",
-              '-h',
-              $mysql_host,
-              $mysql_db,
-              '>',
-              "$backup_path/$app/$backup_name.sql",
-            ];
+            $mysqldump = "mysqldump --port=$mysql_port -u $mysql_user " .
+              "-p$mysql_password -h $mysql_host $mysql_db > $backup_path/$app/$backup_name.sql";
             $mkdirProcess = new Process($mkdir);
             $mkdirProcess->run();
             if ($mkdirProcess->isSuccessful()) {
-                $backupDb = new Process($mysqldump);
+                // Because we're using shell redirection we need to use fromShellCommand.
+                $backupDb = Process::fromShellCommandline($mysqldump);
+                if ($output->isVerbose()) {
+                    $output->writeln("<comment>$this->cat Executing: {$backupDb->getCommandLine()}</comment>");
+                }
                 $backupDb->setTimeout($timeout);
                 $backupDb->run();
                 if (!$backupDb->isSuccessful()) {
-                    throw new ProcessFailedException($backupDb);
+                    $out = $backupDb->getErrorOutput();
+                    $output->writeln("<comment>$out</comment>");
+                    return $backupDb->getExitCode();
                 }
                 if ($output->isVerbose()) {
-                    $out = $backupDb->getOutput();
-                    $output->writeln("<comment>$out</comment>");
+                    $output->writeln("<comment>$this->cat Wrote backup to $backup_path/$app/$backup_name.sql</comment>");
                 }
             }
             else {
@@ -225,7 +220,7 @@ class BackupCommand extends DropcatCommand {
                 }
                 if ($output->isVerbose()) {
                     $out = $rsyncSite->getOutput();
-                    $output->writeln("<comment>$out</comment>");
+                    $output->writeln("<comment>$this->cat $out</comment>");
                 }
             }
             else {
