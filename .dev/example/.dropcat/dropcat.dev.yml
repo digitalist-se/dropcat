@@ -17,9 +17,9 @@ remote:
     ssh_port: 22
     target_path: /mypath
     identity_file: /var/id_rsa
-    web_root: /var/www/html
+    web_root: /var/www/html/dropcat-test-project/web
     temp_folder: /tmp
-    alias: mysite_latest
+    alias: dev
     target_dir: /tmp
 
 site:
@@ -36,10 +36,10 @@ site:
 
 mysql:
   environment:
-    host: localhost
-    database: drupal_db1
-    user: myuser
-    password: NULL
+    host: db
+    database: dropcat
+    user: root
+    password: root
     port: 3306
 
 deploy:
