@@ -11,6 +11,7 @@ services:
     volumes:
       - jenkins-home:/var/jenkins_home
       - jenkins-backup:/backup
+      - ../:/opt/dropcat # Mount the repo for faster local testing in jenkins.
       - type: bind
         source: ./keys/id_rsa
         target: /var/id_rsa

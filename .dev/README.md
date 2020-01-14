@@ -1,20 +1,30 @@
 # Dev setup
 
-For testing dropcat localy, we have setup jenkins, an web instance and an mysql instance. To start them, run:
+For testing dropcat locally, we have setup jenkins, a web instance and a
+mysql instance. To start them, allow mounts, `docker login` to our
+registry and then run:
 
 ```bash
-docker-compose up
+docker-compose up [-d]
 ```
+⚠️ _docker-compose on mac has a bug prior to version 1.25, which
+prevents from logging in with basic auth. You won't be able to download
+our php image even though you have logged in. Upgrade to at least 1.25
+to fix._
 
-For now, we are tesing committed and pushed code to dropcat, so before tesing a change, you need to push the code, this will be changed so you can test un-pushed code.
+For now, we are testing committed and pushed code to dropcat, so before
+testing a change, you need to push the code, this will be changed so you
+can test un-pushed code.
 
-The same setup we have for testing localy will be set in our CI environment, but we will use drone instead of Jenkins.
+The same setup we have for testing locally will be set in our CI
+environment, but we will use drone instead of Jenkins.
 
 ## Jenkins
 
-This is customed built, the Dockerfile is in .dev/services/jenkins
+This is a customised built, the Dockerfile is in .dev/services/jenkins
 
-First time you start Jenkins, a password is printed out in the docker logs, use that for setup jenkins.
+First time you start Jenkins, a password is printed out in the docker
+logs, use that for setting up jenkins.
 
 Jenkins is reachable on URL: http://0.0.0.0:8080/
 
@@ -22,9 +32,11 @@ Jenkins is reachable on URL: http://0.0.0.0:8080/
 
 #### Git project
 
-Use the dropcat project: `https://github.com/digitalist-se/dropcat.git` (for now use branch drush-10)
+Use the dropcat project: `https://github.com/digitalist-se/dropcat.git`
+(for now use branch drush-10)
 
-All needed is in the .dev/example folder. It will use the dropcat file in `.dev/example/.dropcat`
+All needed is in the .dev/example folder. It will use the dropcat file
+in `.dev/example/.dropcat`
 
 #### Add shell
 
@@ -39,9 +51,9 @@ ${DROPCAT} help generate:drush-alias
 
 ## Web
 
-This is customed built, the Dockerfile is in .dev/services/apache
+This is a customised build, the Dockerfile is in .dev/services/apache
 
-This is a apache instance with php 7:2, this is used to deploy the code to.
+This is an apache instance with php 7:2, this is used to deploy the code to.
 
 ## DB
 
