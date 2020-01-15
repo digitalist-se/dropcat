@@ -122,6 +122,13 @@ class BackupCommand extends DropcatCommand {
                 $this->configuration->remoteEnvironmentSshPort()
               ),
               new InputOption(
+                'ssh-identity',
+                'i',
+                InputOption::VALUE_OPTIONAL,
+                'SSH Identity File',
+                $this->configuration->remoteEnvironmentIdentifyFile()
+              ),
+              new InputOption(
                 'web-root',
                 'w',
                 InputOption::VALUE_OPTIONAL,
@@ -155,6 +162,7 @@ class BackupCommand extends DropcatCommand {
         $server = $input->getOption('server');
         $user = $input->getOption('user');
         $ssh_port = $input->getOption('ssh-port');
+        $identityFile = $input->getOption('ssh-identity');
         $web_root = $input->getOption('web-root');
         $alias = $input->getOption('alias');
         $timestamp = $this->configuration->timeStamp();
@@ -176,14 +184,15 @@ class BackupCommand extends DropcatCommand {
                     $output->writeln("<comment>$this->cat Executing: {$backupDb->getCommandLine()}</comment>");
                 }
                 $backupDb->setTimeout($timeout);
-                $backupDb->run();
-                if (!$backupDb->isSuccessful()) {
+                try {
+                    $backupDb->mustRun();
+                    if ($output->isVerbose()) {
+                        $output->writeln("<comment>$this->cat Wrote backup to $backup_path/$app/$backup_name.sql</comment>");
+                    }
+                } catch (ProcessFailedException $e) {
                     $out = $backupDb->getErrorOutput();
-                    $output->writeln("<comment>$out</comment>");
+                    $output->writeln("<error>$out</error>");
                     return $backupDb->getExitCode();
-                }
-                if ($output->isVerbose()) {
-                    $output->writeln("<comment>$this->cat Wrote backup to $backup_path/$app/$backup_name.sql</comment>");
                 }
             }
             else {
@@ -198,29 +207,35 @@ class BackupCommand extends DropcatCommand {
             $mkdirProcess = new Process($mkdir);
             $mkdirProcess->run();
             if ($mkdirProcess->isSuccessful()) {
-                $rsync = [
-                  'rsync',
-                  '-L',
-                  '-a',
-                  '-q',
-                  '-P',
-                  '-e',
-                  'ssh',
-                  '-p',
-                  "$ssh_port",
-                  '-o',
-                  'LogLevel=Error',
-                  "$user@$server:$web_root/$alias $backup_path/$app",
-                ];
-                $rsyncSite = new Process($rsync);
-                $rsyncSite->setTimeout($timeout);
-                $rsyncSite->run();
-                if (!$rsyncSite->isSuccessful()) {
-                    throw new ProcessFailedException($rsyncSite);
+                $sshCommand = "ssh -p $ssh_port";
+                if (isset($sshCommand)) {
+                    $sshCommand .= " -i $identityFile";
                 }
                 if ($output->isVerbose()) {
-                    $out = $rsyncSite->getOutput();
-                    $output->writeln("<comment>$this->cat $out</comment>");
+                    $sshCommand .= ' -o LogLevel=VERBOSE';
+                    $rsyncOptions = '-vPaL';
+                }
+                else {
+                    $sshCommand .= ' -o LogLevel=ERROR';
+                    $rsyncOptions = '-qPaL';
+                }
+                $rsyncCommand = "rsync $rsyncOptions -e \"$sshCommand\" $user@$server:$web_root/$alias $backup_path/$app";
+                $rsyncProcess = Process::fromShellCommandline($rsyncCommand);
+                $rsyncProcess->setTimeout($timeout);
+                if ($output->isVerbose()) {
+                    $output->writeln("<comment>$this->cat Executing: {$rsyncProcess->getCommandLine()}</comment>");
+                }
+                try {
+                    $rsyncProcess->mustRun();
+                    if ($output->isVerbose()) {
+                        $output->writeln("<comment>$this->cat Backed up site to $backup_path/$app</comment>");
+                        $out = $rsyncProcess->getOutput();
+                        $output->writeln("<comment>$this->cat $out</comment>");
+                    }
+                } catch (ProcessFailedException $e) {
+                    $out = $rsyncProcess->getErrorOutput();
+                    $output->writeln("<error>$out</error>");
+                    return $rsyncProcess->getExitCode();
                 }
             }
             else {
@@ -231,6 +246,7 @@ class BackupCommand extends DropcatCommand {
             $output->writeln("<info>$this->mark site backup done</info>");
         }
         $output->writeln("<info>$this->heart backup finished</info>");
+
         return 0;
     }
 }

@@ -10,7 +10,8 @@ RUN apt-get -y update && \
     git \
     zip \
     unzip \
-    libpng-dev
+    libpng-dev \
+    rsync
 
 RUN docker-php-ext-install gd pdo_mysql
 

@@ -19,7 +19,7 @@ remote:
     identity_file: /var/id_rsa
     web_root: /var/www/html/dropcat-test-project/web
     temp_folder: /tmp
-    alias: dev
+    alias: NULL
     target_dir: /tmp
 
 site:
