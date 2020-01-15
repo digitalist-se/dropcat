@@ -17,14 +17,14 @@ remote:
     ssh_port: 22
     target_path: /mypath
     identity_file: /var/id_rsa
-    web_root: /var/www/html/dropcat-test-project/web
+    web_root: /var/www/html/dropcat-test-project
     temp_folder: /tmp
     alias: NULL
     target_dir: /tmp
 
 site:
   environment:
-    drush_alias: foo
+    drush_alias: mystagesite.dev
     backup_path: /backup
     config_name: NULL
     original_path: /var/www/html/shared/some_path

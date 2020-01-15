@@ -29,6 +29,13 @@ To override config in dropcat.yml, using options, creates alias to stage env.
                 InputOption::VALUE_NONE,
                 "Create drush alias for local use (this option is normally not needed)."
               ),
+              new InputOption(
+                'location',
+                'o',
+                InputOption::VALUE_OPTIONAL,
+                "Where to save the drush alias file.",
+                NULL
+              ),
             ]
           );
     }
@@ -39,6 +46,7 @@ To override config in dropcat.yml, using options, creates alias to stage env.
           '--env',
           '-e',
         ], getenv('DROPCAT_ENV') ?: 'dev');
+        $location = $input->getOption('location');
 
         if ($this->configuration) {
             $drushAliasName = $this->configuration->siteEnvironmentDrushAlias();
@@ -80,15 +88,22 @@ To override config in dropcat.yml, using options, creates alias to stage env.
               'url' => $url,
               'ssh-port' => $sshport,
               'drush-memory-limit' => $drushMemoryLimit,
+              'location' => $location,
             ];
 
             $write = new Write();
-            $write->drushAlias($conf, $output->isVerbose());
+            $success = $write->drushAlias($conf, $output->isVerbose());
 
-            $output->writeln('<info>Task: generate:drush-alias finished.</info>');
+            if ($success === 0) {
+                $output->writeln('<info>Task: generate:drush-alias finished.</info>');
+            } else {
+                $output->writeln('<error>Task: generate:drush-alias failed.</error>');
+                return 1;
+            }
+
         }
         else {
-            echo 'I cannot create any alias, please check your --env parameter';
+            $output->writeln('<error>I cannot create any alias, please check your --env parameter</error>');
             return 1;
         }
 
