@@ -51,6 +51,11 @@ class Write {
 
     /**
      * Write a drush alias.
+     *
+     * @param $conf
+     * @param bool $verbose
+     *
+     * @return int
      */
     public function drushAlias($conf, $verbose = FALSE) {
         $drushAlias = new CreateDrushAlias();
@@ -66,15 +71,25 @@ class Write {
         $drushAlias->setUrl($conf['url']);
         $drushAlias->setSSHPort($conf['ssh-port']);
         $drushAlias->setDrushMemoryLimit($conf['drush-memory-limit']);
+        $drushAlias->setLocation($conf['location']);
 
-        if ($conf['drush-script']) {
+        if (isset($conf['drush-script'])) {
             $drushAlias->setDrushScriptPath($conf['drush-script']);
         }
 
         $drush_file = $this->fs;
 
         try {
-            $filename = DROPCAT_COMPOSER_ROOT . '/drush/sites/self.site.yml';
+            if (isset($conf['location'])) {
+                # If a specific location was specified.
+                $filename = "{$conf['location']}/{$conf['site-name']}.site.yml";
+            } else if (defined('DROPCAT_COMPOSER_ROOT')) {
+                # Preferred way of storing drush aliases: in the site repo.
+                $filename = DROPCAT_COMPOSER_ROOT . "/drush/sites/{$conf['site-name']}.site.yml";
+            } else {
+                # Fallback: current directory.
+                $filename = "./{$conf['site-name']}.site.yml";
+            }
 
             if (file_exists($filename)) {
                 if ($verbose) {
@@ -112,11 +127,16 @@ class Write {
             if ($verbose) {
                 $this->output->writeln("<info>Successfully written $filename</info>");
             }
+            $this->output->writeln("<info>$this->mark drush alias @" .
+              $conf['env'] . " created. Run <comment>drush sa</comment> to see available aliases.</info>");
+
+            return 0;
         } catch (IOExceptionInterface $e) {
-            echo 'An error occurred while creating your file at ' . $e->getPath();
+            $this->output->writeln('<error>An error occurred while creating your file at '
+              . $e->getPath() . '</error>');
+
+            return 1;
         }
-        $this->output->writeln("<info>$this->mark drush alias @" .
-          $conf['env'] . " created. Run <comment>drush sa</comment> to see available aliases.</info>");
     }
 
 

@@ -25,6 +25,7 @@ class CreateDrushAlias
     private $sshport;
     private $drushScript = null;
     private $drushMemoryLimit;
+    private $location;
 
     /**
      * @param string $env
@@ -87,6 +88,12 @@ class CreateDrushAlias
         $this->drushMemoryLimit = $drushmemorylimit;
     }
 
+    /**
+     * @param string $location
+     */
+    public function setLocation($location): void {
+        $this->location = $location;
+    }
 
     /**
      * Get options for the drush alias.
