@@ -11,9 +11,14 @@ RUN apt-get -y update && \
     zip \
     unzip \
     libpng-dev \
-    rsync
+    rsync \
+    mariadb-client
 
-RUN docker-php-ext-install gd pdo_mysql
+RUN docker-php-ext-install gd pdo_mysql mysqli opcache
+
+# Use the default production configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+RUN sed -i s/128M/512M/ "$PHP_INI_DIR/php.ini"
 
 #Set up SSH access
 RUN mkdir /var/run/sshd
@@ -26,6 +31,12 @@ RUN mkdir /root/.ssh
 COPY authorized_keys /root/.ssh/authorized_keys
 
 COPY docker_entrypoint.sh /usr/bin/
+
+# Install drush launcher.
+RUN wget -O drush.phar https://github.com/drush-ops/drush-launcher/releases/download/0.6.0/drush.phar && \
+    chmod +x drush.phar && \
+    chown www-data:www-data drush.phar && \
+    mv drush.phar /usr/local/bin/drush
 
 EXPOSE 22 80
 

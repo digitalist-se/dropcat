@@ -8,3 +8,4 @@ dropcat.phar.version
 box.phar
 .dev/data
 .dev/apache
+.dev/storage

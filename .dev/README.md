@@ -41,12 +41,27 @@ in `.dev/example/.dropcat`
 #### Add shell
 
 ```bash
-DROPCAT=../../app/dropcat
+# Use local dropcat, mounted on /opt/dropcat
+DROPCAT=/opt/dropcat/app/dropcat
 DROPCAT_ENV=dev
-composer install
-cd .dev/example
+
+install_drupal() {
+  composer create-project --ignore-platform-reqs drupal/recommended-project .
+  # Workaround for drupal 8.8.0
+  chmod -R +w web/sites/default
+  composer require drush/drush --dev --ignore-platform-reqs
+  drush site:install demo_umami --account-pass=admin --db-url=mysql://root:root@db:3306/dropcat -y
+  mkdir -p ${WORKSPACE}/.dropcat
+  cp /opt/dropcat/.dev/example/.dropcat/dropcat.dev.yml ${WORKSPACE}/.dropcat
+}
+
+if [ ! -f composer.json ]; then
+  install_drupal
+fi
+
+### Dropcat Commands
 ${DROPCAT} debug:check-connection
-${DROPCAT} help generate:drush-alias
+${DROPCAT} about
 ```
 
 ## Web
