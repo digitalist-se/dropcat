@@ -57,7 +57,12 @@ class DropcatCommand extends Command
         $this->cat = $style->colorize('yellow', $cat);
     }
 
-    protected function runProcess($command)
+    /**
+     * @param array $command
+     *
+     * @return \Symfony\Component\Process\Process
+     */
+    protected function runProcess(array $command): Process
     {
         return new Process($command);
     }

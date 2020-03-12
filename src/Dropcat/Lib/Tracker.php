@@ -20,6 +20,11 @@ class Tracker
     public $mark;
     public $verbose;
 
+    /**
+     * @var \Symfony\Component\Console\Output\ConsoleOutput
+     */
+    private $output;
+
     public function __construct($verbose = false)
     {
         $this->verbose = $verbose;
