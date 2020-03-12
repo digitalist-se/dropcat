@@ -21,6 +21,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Exception;
 use Dropcat\Lib\UUID;
 use Dropcat\Lib\Name;
+use Symfony\Component\Process\Process;
 
 class PrepareCommand extends DropcatCommand
 {
@@ -334,9 +335,9 @@ To override config in dropcat.yml, using options:
         $mysql_root_pass = $mysql_password;
         $new_site_name = '';
         $site_alias = "$web_root/$alias";
-        if (!isset($db_dump_path)) {
+        if (!isset($db_dump_path) || empty($db_dump_path)) {
             $db_dump_path = getenv('DB_DUMP_PATH');
-            if (!isset($db_dump_path)) {
+            if (!isset($db_dump_path) || empty($db_dump_path)) {
                 throw new Exception('you need to set the DB_DUMP_PATH variable or add the backup-db-path option');
             }
         }
@@ -345,21 +346,23 @@ To override config in dropcat.yml, using options:
 
         $server_time = date("Ymd_His");
 
+        // @todo this variable usage doesn't really make sense
         if (!isset($db_dump_path)) {
             $db_dump_path = $backups_dir . '/' . $server_time . '.sql';
         }
 
-        // Create backup dir if it not exists.
-        $db_dump_path_mkdir = "mkdir -p $backups_dir";
+        // Create backup dir if it does not exist.
+        $db_dump_path_mkdir = ['mkdir', '-p', "$backups_dir"];
         $create_backup_dir = $this->runProcess($db_dump_path_mkdir);
         $create_backup_dir->setTimeout($timeout);
-        $create_backup_dir->run();
+        $create_backup_dir->mustRun();
         // Executes after the command finishes.
         if (!$create_backup_dir->isSuccessful()) {
             throw new ProcessFailedException($create_backup_dir);
         }
         if ($verbose == true) {
-            echo $create_backup_dir->getOutput();
+            $out = $create_backup_dir->getOutput();
+            $output->writeln('<comment>' . $out . '</comment>');
         }
 
         $default_tracker_conf = [
@@ -708,17 +711,18 @@ To override config in dropcat.yml, using options:
             $build_tracker_dir = "$tracker_dir" . '/' . "$app_name" . '/';
             $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$id.yml";
 
-            $create_build_tracker_dir = "mkdir -p $build_tracker_dir";
+            $create_build_tracker_dir = ['mkdir', '-p', "$build_tracker_dir"];
 
             $mkdir = $this->runProcess($create_build_tracker_dir);
             $mkdir->setTimeout($timeout);
-            $mkdir->run();
+            $mkdir->mustRun();
             // Executes after the command finishes.
             if (!$mkdir->isSuccessful()) {
                 throw new ProcessFailedException($mkdir);
             }
             if ($verbose == true) {
-                echo $mkdir->getOutput();
+                $out = $mkdir->getOutput();
+                $output->writeln('<comment>' . $out . '</comment>');
             }
 
             $web_server_conf = [
@@ -759,5 +763,7 @@ To override config in dropcat.yml, using options:
             $output->writeln('<info>' . $this->mark . ' deleted old automatic db backups.</info>');
         }
         $output->writeln('<info>' . $this->heart . ' prepare finished</info>');
+
+        return 0;
     }
 }

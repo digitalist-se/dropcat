@@ -20,6 +20,8 @@ RUN docker-php-ext-install gd pdo_mysql mysqli opcache
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN sed -i s/128M/512M/ "$PHP_INI_DIR/php.ini"
 
+RUN sed -i s+DocumentRoot\ /var/www/html+DocumentRoot\ /var/www/html/test_latest_stage/web+ /etc/apache2/sites-enabled/000-default.conf
+
 #Set up SSH access
 RUN mkdir /var/run/sshd
 #RUN sed -i.bak s/PermitRootLogin\ prohibit-password/PermitRootLogin\ yes/g  /etc/ssh/sshd_config
