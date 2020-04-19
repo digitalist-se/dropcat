@@ -28,6 +28,10 @@ logs, use that for setting up jenkins.
 
 Jenkins is reachable on URL: http://0.0.0.0:8080/
 
+If you forgot the password, go to .dev/storage/jenkins/config.xml and set <useSecurity>false</useSecurity>
+
+After you restart jenkins you can login without password.
+
 ### Setup job
 
 #### Git project
@@ -74,3 +78,18 @@ This is an apache instance with php 7:2, this is used to deploy the code to.
 
 This is a MariaDB instance, for testing.
 
+## Troubleshooting - common problems:
+
+#### Apache might not be running - start manually in the web service
+
+#### The ECDSA host key for web could have changed:
+
+```shell
+Offending ECDSA key in /var/jenkins_home/.ssh/known_hosts:2
+remove with:
+  ssh-keygen -f "/var/jenkins_home/.ssh/known_hosts" -R web
+```
+
+#### Drupal is not installed
+
+Remove the `.initialized` file in `.dev/apache` and `docker-compose restart web` to install Drupal.

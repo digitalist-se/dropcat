@@ -5,6 +5,7 @@ namespace Dropcat\Command;
 use Dropcat\Lib\DropcatCommand;
 use Dropcat\Lib\Tracker;
 use Dropcat\Lib\CheckDrupal;
+use MongoDB\Driver\Exception\CommandException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -140,13 +141,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
             $verbose = true;
         }
 
-        $ent = '';
         $part = '';
         $exclude = '';
-
-        if ($no_entity_update == false) {
-            $ent = ' --entity-updates';
-        }
 
         if ($config_partial == true) {
             $part = ' --partial';
@@ -160,13 +156,9 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         }
         if ($version == '7') {
             $output->writeln("<info>$this->mark this is a drupal 7 site</info>");
-            // We don't run entity updates in drupal 7, so:
-            $ent = null;
         }
         if ($version == '6') {
-            $output->writeln("<info>$this->mark this is a drupal 6 site</info>");
-            // We don't run entity updates in drupal 6, so:
-            $ent = null;
+            throw new Exception('Sorry, no support for Drupal 6');
         }
         if (!isset($version) || $version == '') {
             throw new Exception('version of drupal not recognised.');
@@ -239,7 +231,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                                 echo $process->getOutput();
                             }
                         }
-                        $cmd = ['drush', "@$alias", 'updb', '-y', "$ent"];
+                        $cmd = ['drush', "@$alias", 'updb', '-y'];
                         $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
@@ -404,7 +396,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         if ($no_config_import == false) {
                             if ($version == '8') {
                                 $output->writeln("<info>$this->mark starting config import for $site</info>");
-                                $cmd = ["drush", "@$alias", 'cim', -'y', "$part"];
+                                $cmd = ["drush", "@$alias", 'cim', '-y', "$part"];
                                 $process = new Process($cmd);
                                 $process->setTimeout(9999);
                                 $process->run();
@@ -459,5 +451,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         }
 
         $output->writeln("<info>$this->heart update finished</info>");
+
+        return 0;
     }
 }

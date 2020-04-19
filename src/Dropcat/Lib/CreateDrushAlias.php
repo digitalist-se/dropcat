@@ -113,7 +113,7 @@ class CreateDrushAlias
           "options" => ['php-options' => $this->drushMemoryLimit],
           "host" => $this->server,
           "user" => $this->user,
-          "root" => $this->webroot . '/' . $this->sitePath . 'web',
+          "root" => $this->webroot . '/' . $this->sitePath . '/web',
           "uri"  => $this->url,
           "ssh" => ['options' => '-o LogLevel=Error -q -p ' . $this->sshport],
         ];
