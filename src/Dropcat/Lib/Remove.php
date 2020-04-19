@@ -61,7 +61,7 @@ class Remove
                 throw new Exception("Could not remove file at $file");
             }
         } catch (Exception $e) {
-            echo $e->getMessage() . "\n";
+            $this->output->writeln('<error>' . $e->getMessage() . '</error>');
             exit(1);
         }
 
