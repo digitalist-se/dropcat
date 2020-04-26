@@ -45,13 +45,12 @@ To override config in dropcat.yml, using options:
         if ($output->isVerbose()) {
             $output->writeln("<info>$this->mark using drush alias: $drush_alias</info>");
         }
-        $process = new Process("drush @$drush_alias uli");
-        $process->run();
-        // Executes after the command finishes.
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-        echo $process->getOutput();
+        $process = new Process(['drush', '@$drush_alias', 'uli']);
+        $process->mustRun();
+        $output->writeln('<info>' . $process->getOutput() . '</info>');
+
         $output->writeln("<info>$this->heart reset-login finished</info>");
+
+        return 0;
     }
 }

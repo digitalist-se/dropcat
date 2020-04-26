@@ -33,7 +33,8 @@
     "t4web/composer-lock-parser": "^1.1",
     "guzzlehttp/guzzle": "^6.5",
     "composer/xdebug-handler": "^1.4",
-    "webflo/drupal-finder": "^1.2"
+    "webflo/drupal-finder": "^1.2",
+    "symfony/finder": "^5.0"
   },
   "bin": [
     "app/dropcat"

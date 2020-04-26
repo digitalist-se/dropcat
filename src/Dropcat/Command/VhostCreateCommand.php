@@ -151,7 +151,7 @@ To override config in dropcat.yml, using options:
           "$server_alias\n" .
           "$extra\n" .
           "</VirtualHost>\n";
-        $aliasCreate= new Process(
+        $aliasCreate= Process::fromShellCommandline(
             "ssh -o LogLevel=Error $user@$server -p $port \"echo '$virtualHost' > $target/$file_name $runbash\""
         );
         $aliasCreate->setTimeout(999);
@@ -164,5 +164,7 @@ To override config in dropcat.yml, using options:
         echo $aliasCreate->getOutput();
 
         $output->writeln('<info>Task: vhost:create finished</info>');
+
+        return 0;
     }
 }

@@ -13,7 +13,7 @@ class VarnishPurgeCommand extends DropcatCommand
     {
         $HelpText = 'The <info>varnish:purge</info> command will purge all entries on varnish.
         <comment>Samples:</comment>
-        To run with default options (using config from dropcat.yml in the currrent dir):
+        To run with default options (using config from dropcat.yml in the current dir):
         <info>dropcat varnish:purge</info>
         To override config in dropcat.yml, using options:
         <info>dropcat varnish:purge --url=http://mysite.foo --varnish-port=80</info>';
@@ -97,6 +97,8 @@ class VarnishPurgeCommand extends DropcatCommand
                 111
             );
         }
+
+        return 0;
     }
 }
 

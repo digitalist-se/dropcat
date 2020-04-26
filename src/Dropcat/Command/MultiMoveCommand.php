@@ -275,5 +275,7 @@ To override config in dropcat.yml, using options:
 
         $ssh->disconnect();
         $output->writeln("<info>$this->heart multi:move finished</info>");
+
+        return 0;
     }
 }

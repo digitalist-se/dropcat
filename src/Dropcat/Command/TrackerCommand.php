@@ -241,6 +241,8 @@ To override config in dropcat.yml, using options:
         $build_id = getenv('BUILD_ID');
         $output->writeln('<info>' . $this->mark .
           ' tracker finished</info>');
+
+        return 0;
     }
 
     /**
@@ -272,14 +274,8 @@ To override config in dropcat.yml, using options:
      */
     private function writeDir($dir)
     {
-        $createTrackerDir = new Process(
-            "mkdir -p $dir"
-        );
-        $createTrackerDir->run();
-        // Executes after the command finishes.
-        if (!$createTrackerDir->isSuccessful()) {
-            throw new ProcessFailedException($createTrackerDir);
-        }
+        $createTrackerDir = new Process(['mkdir', '-p', "$dir"]);
+        $createTrackerDir->mustRun();
     }
     private function getSitePath()
     {

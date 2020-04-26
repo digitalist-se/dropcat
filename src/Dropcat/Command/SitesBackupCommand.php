@@ -85,6 +85,8 @@ class SitesBackupCommand extends DropcatCommand
         }
 
         $this->applicationsBackup($tracker_file_directory, $conf);
+
+        return 0;
     }
 
     public function applicationsBackup($tracker_file_directory, $conf)
@@ -125,7 +127,7 @@ class SitesBackupCommand extends DropcatCommand
 
     public function makeDbBackup($db_user, $db_pass, $db_host, $db_name, $full_backup_path, $application, $conf)
     {
-        $process = new Process(
+        $process = Process::fromShellCommandline(
             "mysqldump -u$db_user  -p$db_pass -h $db_host $db_name > $full_backup_path/$db_name.sql"
         );
         $process->setTimeout(9999);
@@ -138,9 +140,7 @@ class SitesBackupCommand extends DropcatCommand
             // we do not throw exception, because we want to process the next backup.
         }
         if ($process->isSuccessful()) {
-            $gzip = new Process(
-                "gzip $full_backup_path/$db_name.sql -f"
-            );
+            $gzip = new Process(['gzip', '$full_backup_path/$db_name.sql', '-f']);
             $gzip->setTimeout(9999);
             $gzip->run();
             // Executes after the command finishes.
@@ -158,13 +158,9 @@ class SitesBackupCommand extends DropcatCommand
 
         if (!is_dir($full_backup_path)) {
             $process = new Process(
-                "mkdir -p $full_backup_path"
+                ['mkdir', '-p', "$full_backup_path"]
             );
-            $process->run();
-            // Executes after the command finishes.
-            if (!$process->isSuccessful()) {
-                throw new ProcessFailedException($process);
-            }
+            $process->mustRun();
             return true;
         } else {
             return true;

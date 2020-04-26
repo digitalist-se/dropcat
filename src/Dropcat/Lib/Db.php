@@ -1,6 +1,8 @@
 <?php
 namespace Dropcat\Lib;
 
+use phpseclib\Crypt\RSA;
+use phpseclib\Net\SSH2;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -171,6 +173,33 @@ class Db
             echo $process->getOutput();
         }
         $this->output->writeln("<info>$this->mark database backed up to $path</info>");
+    }
+
+    public function backupOverSSH($conf) {
+        extract($conf);
+
+        $ssh = new SSH2($server, $port);
+        $ssh->setTimeout(999);
+        $auth = new RSA();
+        if (isset($ssh_key_password)) {
+            $auth->setPassword($ssh_key_password);
+        }
+        $auth->loadKey($identity_file_content);
+
+        try {
+            $login = $ssh->login($user, $auth);
+            if (!$login) {
+                throw new \Exception('Login Failed using ' . $identity_file . ' and user ' . $user . ' at ' . $server
+                  . ' ' . $ssh->getLastError());
+            }
+        } catch (\Exception $e) {
+            echo $e->getMessage() . "\n";
+            exit(1);
+        }
+
+        $ssh->exec("mysqldump -u $user -p$pass -h $host -P $port $name > $path");
+
+        return $ssh->getExitStatus();
     }
 
     public function import($conf, $path)

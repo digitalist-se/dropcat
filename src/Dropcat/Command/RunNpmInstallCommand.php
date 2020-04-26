@@ -49,25 +49,24 @@ To override config in dropcat.yml, using options:
 
         $nvmDir = $input->getOption('nvm-dir');
         if (!isset($nvmDir)) {
-            throw new Exception('No nvm dir found in options.');
+            throw new Exception('<error>No nvm dir found in options.</error>');
         }
         $nodeNvmRcFile = $input->getOption('nvmrc');
         if ($nodeNvmRcFile === null) {
             $nodeNvmRcFile = getcwd() . '/.nvmrc';
         }
         if (!file_exists($nodeNvmRcFile)) {
-            throw new Exception('No .nvmrc file found.');
+            throw new Exception('<error>No .nvmrc file found.</error>');
         }
-        $npmInstall = new Process("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm install && npm install");
+        $npmInstall = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm install && npm install");
         $npmInstall->setTimeout(3600);
-        $npmInstall->run();
+        $npmInstall->mustRun();
         if ($output->isVerbose()) {
-            echo $npmInstall->getOutput();
-        }
-        if (!$npmInstall->isSuccessful()) {
-            throw new ProcessFailedException($npmInstall);
+            $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>');
         }
 
         $output->writeln('<info>' . $this->heart . ' node:npm-install finished</info>');
+
+        return 0;
     }
 }
