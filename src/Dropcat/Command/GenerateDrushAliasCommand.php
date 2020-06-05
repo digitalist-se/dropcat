@@ -50,6 +50,8 @@ To override config in dropcat.yml, using options, creates alias to stage env.
             $user = $this->configuration->remoteEnvironmentSshUser();
             $drushMemoryLimit = $this->configuration->remoteEnvironmentDrushMemoryLimit();
             $local = $input->getOption('local') ? true : false;
+            $identityOption = $this->configuration->localEnvironmentSshIdentityFile();
+
             if ($local === true) {
                 $sshport = $this->configuration->remoteEnvironmentLocalSshPort() ?
                 $this->configuration->remoteEnvironmentLocalSshPort() :
@@ -66,6 +68,7 @@ To override config in dropcat.yml, using options, creates alias to stage env.
                 echo "server is $server\n";
                 echo "port is $sshport\n";
                 echo "drush memory limit is $drushMemoryLimit\n";
+                echo "local identity option is $identityOption\n";
             }
 
             $drushAlias = new CreateDrushAlias();
@@ -77,6 +80,7 @@ To override config in dropcat.yml, using options, creates alias to stage env.
             $drushAlias->setUrl($url);
             $drushAlias->setSSHPort($sshport);
             $drushAlias->setDrushMemoryLimit($drushMemoryLimit);
+            $drushAlias->setSshIdentityOption($identityOption);
 
             $home = new CreateDrushAlias();
             $home_dir = $home->drushServerHome();

@@ -1039,4 +1039,15 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return '-d memory_limit=1024M';
         }
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function localEnvironmentSshIdentityFile() {
+        if (isset($this->configuration['local']['environment']['ssh_identity_file'])) {
+            return $this->configuration['local']['environment']['ssh_identity_file'];
+        } else {
+            return null;
+        }
+    }
 }

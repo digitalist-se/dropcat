@@ -289,4 +289,10 @@ interface DropcatConfigurationInterface
    * Return extra config for vhost.
    */
     public function vhostBashCommand();
+
+    /**
+     * Path to ssh identity file on the local system.
+     * @return string | null
+     */
+    public function localEnvironmentSshIdentityFile();
 }

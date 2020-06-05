@@ -20,7 +20,8 @@ class CreateDrushAlias
     private $url;
     private $sshport;
     private $drushScript = null;
-    private $drushmemorylimit;
+    private $drushMemoryLimit;
+    private $sshIdentityOption = false;
 
     public function setName($sitename)
     {
@@ -67,24 +68,49 @@ class CreateDrushAlias
         $this->drushMemoryLimit = $drushmemorylimit;
     }
 
+    public function setSshIdentityOption($identityOption) {
+        $this->sshIdentityOption = $identityOption;
+    }
+
 
     public function getValue()
     {
-        $aliasOut = '<?php
+        if (empty($this->sshIdentityOption)) {
+            $aliasOut = '<?php
+      $aliases["' . $this->sitename . '"] = array (
+        "php-options" =>  "' . $this->drushMemoryLimit . '",
+        "remote-host" => "' . $this->server . '",
+        "remote-user" => "' . $this->user . '",
+        "root" => "' . $this->webroot . '/' . $this->alias . '/web",
+        "uri"  => "' . $this->url . '",
+        "ssh-options" => "-o LogLevel=Error -q -p ' . $this->sshport . '",';
+            if ($this->drushScript) {
+                $aliasOut .= '
+          "path-aliases" =>  array(
+             "%drush-script"  => "' . $this->drushScript . '",
+          ),';
+            }
+            $aliasOut .= ');';
+        }
+        else {
+            $aliasOut = '<?php
   $aliases["' . $this->sitename . '"] = array (
     "php-options" =>  "' . $this->drushMemoryLimit . '",
     "remote-host" => "' . $this->server . '",
     "remote-user" => "' . $this->user . '",
     "root" => "' . $this->webroot . '/' . $this->alias . '/web",
     "uri"  => "' . $this->url . '",
-    "ssh-options" => "-o LogLevel=Error -q -p ' . $this->sshport . '",';
-        if ($this->drushScript) {
-            $aliasOut .= '
+    "ssh-options" => "-o LogLevel=Error -q -p ' . $this->sshport . ' -i ' . $this->sshIdentityOption . '",';
+            if ($this->drushScript) {
+                $aliasOut .= '
       "path-aliases" =>  array(
          "%drush-script"  => "'. $this->drushScript .'",
       ),';
+            }
+            $aliasOut .= ');';
         }
-        $aliasOut .= ');';
+
+
         return ($aliasOut);
     }
 
