@@ -58,11 +58,50 @@ To override config in dropcat.yml, using options:
         if (!file_exists($nodeNvmRcFile)) {
             throw new Exception('<error>No .nvmrc file found.</error>');
         }
-        $npmInstall = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm install && npm install");
+        /*
+        $processes = [
+          ['bash', '-c', "source $nvmDir/nvm.sh"],
+            ['bash', '-c', "bash $nvmDir/nvm.sh"],
+            ['bash', '-c', 'nvm install'],
+            ['bash', '-c', 'npm install']
+        ];
+
+        foreach ($processes as $process) {
+            $runProcess = new Process($process);
+            $runProcess->setTimeout(3600);
+            try {
+                $runProcess->mustRun();
+                if ($output->isVerbose()) {
+                    $output->writeln('<comment>' . $runProcess->getOutput() . '</comment>');
+                }
+            } catch (ProcessFailedException $e) {
+                $output->writeln('<error>' . $e->getMessage() . '</error>');
+                if ($output->isVerbose()) {
+                    $output->writeln('<error>' . $e->getTraceAsString() . '</error>');
+                }
+                $output->writeln('<error>' . $this->error . ' node:npm-install failed</error>');
+                return 1;
+            }
+        }
+        */
+
+        // Replace double slashes
+        $nvmSh = "$nvmDir/nvm.sh";
+        $nvmSh = preg_replace('/\/\//', '/', $nvmSh);
+        $npmInstall = Process::fromShellCommandline("[ -s $nvmSh ] && \. $nvmSh && nvm install && npm install");
         $npmInstall->setTimeout(3600);
-        $npmInstall->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>');
+        try {
+            $npmInstall->mustRun();
+            if ($output->isVerbose()) {
+                $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>');
+            }
+        } catch (ProcessFailedException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+            if ($output->isVerbose()) {
+                $output->writeln('<error>' . $e->getTraceAsString() . '</error>');
+            }
+            $output->writeln('<error>' . $this->error . ' node:npm-install failed</error>');
+            return 1;
         }
 
         $output->writeln('<info>' . $this->heart . ' node:npm-install finished</info>');
