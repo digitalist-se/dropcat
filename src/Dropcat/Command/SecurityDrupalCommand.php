@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Exception;
 use ComposerLockParser\ComposerInfo;
 use GuzzleHttp\Client;
+use Symfony\Component\Process\Process;
 
 class SecurityDrupalCommand extends DropcatCommand
 {
@@ -66,7 +67,6 @@ class SecurityDrupalCommand extends DropcatCommand
         if (!isset($version)) {
             if ($version_drupal == '8') {
                 $read_lock = new ComposerInfo($lock_file);
-                $read_lock->parse();
                 $parse = $read_lock->getPackages();
 
                 foreach ($parse as $package) {
@@ -92,7 +92,7 @@ class SecurityDrupalCommand extends DropcatCommand
                 // @todo: we need to scan core files if they are commited and
                 // not using a make file
                 $find_d7_command = 'find . -maxdepth 1 -type f \( -iname \*.make -o -iname \*.make \)| xargs grep "\[\drupal]\[version"';
-                $run_process = $this->runProcess($find_d7_command);
+                $run_process = Process::fromShellCommandline($find_d7_command);
                 $run_process->run();
                 $get_output = $run_process->enableOutput();
                 $line = $get_output->getOutput();
@@ -103,6 +103,8 @@ class SecurityDrupalCommand extends DropcatCommand
         } else {
             $this->getVersion($version, $api, $be_evil, $output);
         }
+
+        return 0;
     }
 
     public function getVersion($version, $api, $be_evil, $output)
@@ -146,7 +148,7 @@ class SecurityDrupalCommand extends DropcatCommand
                 $output->writeln("<info>$this->heart drupal version $version is ok</info>");
             }
         } else {
-            if ($status == 'depcrecated') {
+            if ($status == 'deprecated') {
                 $output->writeln("<info>$this->error drupal version $version is deprecated</info>");
                 $output->writeln("<error>ERROR!!!</error>");
                 exit(1);

@@ -219,7 +219,7 @@ class MultiCloneCommand extends DropcatCommand
         $rebuild = new Cache();
         $rebuild->rebuild($config, $verbose);
 
-
+        return 0;
 
         // sql query för att få ut alla tabeller med langcode
         // drush sql-query "SELECT TABLE_NAME  FROM INFORMATION_SCHEMA.COLUMNS  WHERE COLUMN_NAME LIKE 'langcode' AND TABLE_SCHEMA='mikketysk'" > filetxt

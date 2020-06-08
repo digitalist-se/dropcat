@@ -17,9 +17,9 @@ remote:
     ssh_port: 22
     target_path: /mypath
     identity_file: /var/id_rsa
-    web_root: /var/www/html/dropcat-test-project
+    web_root: /var/www/html
     temp_folder: /tmp
-    alias: NULL
+    alias: test_latest_stage
     target_dir: /tmp
 
 site:
@@ -27,11 +27,11 @@ site:
     drush_alias: mystagesite.dev
     backup_path: /backup
     config_name: NULL
-    original_path: /var/www/html/shared/some_path
-    symlink: /var/www/webroot/mysite_latest/symlink_path
-    url: http://mysite.com
+    original_path: /var/www/html/shared/mystagesite/files
+    symlink: /var/www/html/test_latest_stage/web/sites/default/files
+    url: http://web
     name: mystagesite
-    profile: default
+    profile: umami
     profile_options: NULL
 
 mysql:
@@ -53,4 +53,7 @@ deploy:
     - provision
     - nbproject
   jenkins_server: http://foobar:token@jenkins.server.net:8080
-  jenkins_job: MyJob
+  jenkins_job: Dropcat
+
+tracker:
+  dir: /var/jenkins_home/trackerdir

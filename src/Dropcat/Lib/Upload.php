@@ -58,7 +58,7 @@ class Upload
             }
             $transfer = $sftp->put("$to", "$from", 1);
             if (!$transfer) {
-                throw new Exception("Could not place file $name at $to");
+                throw new Exception("Could not place file $from at $to");
             }
         } catch (Exception $e) {
             echo $e->getMessage() . "\n";

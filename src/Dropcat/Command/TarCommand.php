@@ -100,6 +100,8 @@ To override config in dropcat.yml, using options:
             throw new \RuntimeException($exceptionMessage, $error_object->code);
         }
         $output->writeln("<info>$this->heart tar finished</info>");
+
+        return 0;
     }
 
     /**

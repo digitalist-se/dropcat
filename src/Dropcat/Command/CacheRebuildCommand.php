@@ -17,7 +17,7 @@ class CacheRebuildCommand extends DropcatCommand {
 To run with default options (using config from dropcat.yml in the currrent dir):
 <info>dropcat cache-recreate</info>
 To override config in dropcat.yml, using options:
-<info>dropcat cache-recreate -d mysite</info>';
+<info>dropcat cache-rebuild -d mysite</info>';
 
         $this->setName("cache:rebuild")
           ->setDescription("Recreates cache (d8)")
@@ -44,11 +44,18 @@ To override config in dropcat.yml, using options:
         }
         $cr = ['drush', "@$drush_alias", 'cache:rebuild'];
         $process = new Process($cr);
+        if ($output->isVerbose()) {
+            $out = 'Running command: ' . $process->getCommandLine() . "\n";
+            $output->writeln("<comment>$out</comment>");
+        }
         $process->run();
         // Executes after the command finishes.
         if (!$process->isSuccessful()) {
             $msg = $process->getErrorOutput();
-            $output->writeln("<error>$msg</error>");
+            if (empty($msg)) {
+                $msg = $process->getOutput();
+            }
+            $output->writeln("<error>Error: $msg</error>");
 
             return $process->getExitCode();
         }

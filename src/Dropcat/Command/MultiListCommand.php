@@ -103,5 +103,7 @@ class MultiListCommand extends DropcatCommand
             }
         }
             $output->writeln("$out");
+
+        return 0;
     }
 }

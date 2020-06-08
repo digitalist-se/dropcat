@@ -9,7 +9,7 @@ services:
       - 50000:50000
       - 22:22
     volumes:
-      - jenkins-home:/var/jenkins_home
+      - ./storage/jenkins:/var/jenkins_home
       - jenkins-backup:/backup
       - ../:/opt/dropcat # Mount the repo for faster local testing in jenkins.
       - type: bind
@@ -43,8 +43,6 @@ services:
     ports:
       - 8083:8080
 volumes:
-  jenkins-home:
-    driver: local
   jenkins-backup:
     driver: local
   db-volume:

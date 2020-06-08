@@ -27,15 +27,15 @@ class SelfUpdaterCommand extends DropcatCommand
             $result = $updater->update();
             if (! $result) {
                 $output->writeln('<info>You are already a fashion lion. No update is needed.</info>');
-                exit;
+                return 0;
             }
             $new = $updater->getNewVersion();
             $old = $updater->getOldVersion();
             $output->writeln("<info>Oh, fresh! Updated from $old to $new.</info>");
-            exit;
+            return 0;
         } catch (\Exception $e) {
             $output->writeln("<info>We got an error. Sorry. $e->getMessage()</info>");
-            exit;
+            return 1;
         }
     }
 }

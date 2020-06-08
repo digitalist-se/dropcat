@@ -26,6 +26,7 @@ class CreateDrushAlias
     private $drushScript = null;
     private $drushMemoryLimit;
     private $location;
+    private $identityFile;
 
     /**
      * @param string $env
@@ -96,6 +97,13 @@ class CreateDrushAlias
     }
 
     /**
+     * @param string $identityFile
+     */
+    public function setIdentityFile($identityFile): void {
+        $this->identityFile = $identityFile;
+    }
+
+    /**
      * Get options for the drush alias.
      * @return array
      */
@@ -109,6 +117,10 @@ class CreateDrushAlias
           "uri"  => $this->url,
           "ssh" => ['options' => '-o LogLevel=Error -q -p ' . $this->sshport],
         ];
+
+        if ($this->identityFile) {
+            $options[$this->env]['ssh']['options'] .= ' -i ' . $this->identityFile;
+        }
 
         if ($this->drushScript) {
             $options[$this->env]['paths'] = [

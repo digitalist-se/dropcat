@@ -96,7 +96,7 @@ To run with default options (using config from dropcat.yml in the current dir):
         } catch (Exception $e) {
             echo $e->getMessage() ."\n";
             $output->writeln('<error>Task: check-connection failed</error>');
-            exit(1);
+            return 1;
         }
 
         try {
@@ -114,7 +114,7 @@ To run with default options (using config from dropcat.yml in the current dir):
             echo $e->getMessage() ."\n";
             $output->writeln('<error>Task: check-connection failed</error>');
             $ssh->disconnect();
-            exit(1);
+            return 1;
         }
         $output->writeln('<info>Successfully logged in to server as user <question>' . $test_user .
             '</question> on <question>' . $hostname .'</question>.</info>');

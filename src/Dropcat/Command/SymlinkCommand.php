@@ -143,5 +143,7 @@ To override config in dropcat.yml, using options:
         }
         $ssh->exec('ln --backup -snf ' . $original . ' ' . $symlink);
         $output->writeln("<info>$this->heart symlink finished</info>");
+
+        return 0;
     }
 }

@@ -81,22 +81,22 @@ class RunGulpCommand extends RunCommand
             $nodeNvmRcFile = getcwd() . '/.nvmrc';
         }
         if (!file_exists($nodeNvmRcFile)) {
-            throw new Exception('No .nvmrc file found.');
+            throw new Exception('<error>No .nvmrc file found.</error>');
         }
 
         $env = null;
         if (isset($nodeEnv)) {
             $env = 'NODE_ENV=' . $nodeEnv;
         }
-        $gulp = new Process("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm use && cd $gulpDir && $env gulp $gulpOptions");
+        $gulp = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm use && cd $gulpDir && $env gulp $gulpOptions");
         $gulp->setTimeout(3600);
-        $gulp->run();
+        $gulp->mustRun();
         if ($output->isVerbose()) {
-            echo $gulp->getOutput();
+            $output->writeln('<comment>' . $gulp->getOutput() . '</comment>');
         }
-        if (!$gulp->isSuccessful()) {
-            throw new ProcessFailedException($gulp);
-        }
+
         $output->writeln('<info>' . $this->heart . ' node:gulp finished</info>');
+
+        return 0;
     }
 }

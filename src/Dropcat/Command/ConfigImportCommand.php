@@ -57,26 +57,27 @@ To override config in dropcat.yml, using options:
         $timeout = $input->getOption('timeout');
 
         if ($output->isVerbose()) {
-            echo 'using drush alias: ' . $drush_alias . "\n";
-            echo 'using config: ' . $config_name . "\n";
+            $output->writeln('using drush alias: ' . $drush_alias);
+            $output->writeln('using config: ' . $config_name);
         }
 
+        $processCommand = ['drush', '@$drush_alias', 'cim', "$config_name", '-y'];
+
         if ($output->isVerbose()) {
-            $processCommand = "drush @$drush_alias cim $config_name -y";
+            $processCommand = array_merge($processCommand, ['-v']);
         } else {
-            $processCommand = "drush @$drush_alias cim $config_name -q -y";
+            $processCommand = array_merge($processCommand, ['-q']);
         }
 
         $process = $this->runProcess($processCommand);
 
         $process->setTimeout($timeout);
-        $process->run();
+        $process->mustRun();
         // Executes after the command finishes.
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
         echo $process->getOutput();
 
         $output->writeln('<info>Task: configimport finished</info>');
+
+        return 0;
     }
 }

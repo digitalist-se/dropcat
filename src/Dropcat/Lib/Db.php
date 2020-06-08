@@ -1,6 +1,8 @@
 <?php
 namespace Dropcat\Lib;
 
+use phpseclib\Crypt\RSA;
+use phpseclib\Net\SSH2;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -8,9 +10,9 @@ use mysqli;
 use Symfony\Component\Console\Output\ConsoleOutput;
 
 /**
- * Class CheckDrupal
+ * Class Db
  *
- * Checking if it is Drupal, and which version.
+ * Handles common database tasks
  *
  * @package Dropcat\Lib
  */
@@ -41,10 +43,9 @@ class Db
         $timeout = $conf['timeout'];
 
         // Create db user.
-        $process = new Process(
-            "mysql -u $mysql_root_user -p$mysql_root_pass -h $mysql_host " .
-            " -e \"CREATE USER '$new_mysql_user'@'%' IDENTIFIED BY '$new_mysql_pass'\";"
-        );
+        $cmd = "mysql -u $mysql_root_user -p$mysql_root_pass -h $mysql_host " .
+          " -e \"CREATE USER '$new_mysql_user'@'%' IDENTIFIED BY '$new_mysql_pass'\";";
+        $process = Process::fromShellCommandline($cmd);
         $process->setTimeout($timeout);
         $process->run();
         // Executes after the command finishes.
@@ -55,9 +56,8 @@ class Db
             echo $process->getOutput();
         }
         // Flush Privileges.
-        $process = new Process(
-            "mysqladmin -u$mysql_root_user -p$mysql_root_pass -h $mysql_host FLUSH-PRIVILEGES"
-        );
+        $cmd = "mysqladmin -u$mysql_root_user -p$mysql_root_pass -h $mysql_host FLUSH-PRIVILEGES";
+        $process = Process::fromShellCommandline($cmd);
         $process->setTimeout($timeout);
         $process->run();
         // Executes after the command finishes.
@@ -100,12 +100,11 @@ class Db
         // If db does not exist.
         if ($mysqli->select_db("$mysql_db") === false) {
             // Fix privileges for db user.
-            $process = new Process(
-                "mysql -u $mysql_root_user -p$mysql_root_pass -h $mysql_host " .
-                "-e \"GRANT ALL PRIVILEGES ON * . * TO '$mysql_user'@'%' IDENTIFIED BY '$mysql_password'\";"
-            );
+            $cmd = "mysql -u $mysql_root_user -p$mysql_root_pass -h $mysql_host " .
+              "-e \"GRANT ALL PRIVILEGES ON * . * TO '$mysql_user'@'%' IDENTIFIED BY '$mysql_password'\";";
+            $process = Process::fromShellCommandline($cmd);
             $process->setTimeout($timeout);
-            $process->run();
+            $process->mustRun();
             // Executes after the command finishes.
             if (!$process->isSuccessful()) {
                 throw new ProcessFailedException($process);
@@ -114,11 +113,21 @@ class Db
                 echo $process->getOutput();
             }
 
-            $process = new Process(
-                "mysqladmin -u $mysql_user -p$mysql_password -h $mysql_host -P $mysql_port create $mysql_db"
-            );
+            $cmd = [
+              'mysqladmin',
+              '-u',
+              "$mysql_user",
+              "-p$mysql_password",
+              '-h',
+              "$mysql_host",
+              '-P',
+              "$mysql_port",
+              'create',
+              "$mysql_db",
+            ];
+            $process = new Process($cmd);
             $process->setTimeout($timeout);
-            $process->run();
+            $process->mustRun();
             // Executes after the command finishes.
             if (!$process->isSuccessful()) {
                 throw new ProcessFailedException($process);
@@ -130,11 +139,10 @@ class Db
             $this->output->writeln('<info>' . $this->mark . ' database created</info>');
         } else {
             if (isset($db_dump_path)) {
-                $process = new Process(
-                    "mysqldump -u $mysql_user -p$mysql_password -h $mysql_host -P $mysql_port $mysql_db > $db_dump_path"
-                );
+                $cmd = "mysqldump -u $mysql_user -p$mysql_password -h $mysql_host -P $mysql_port $mysql_db > $db_dump_path";
+                $process = Process::fromShellCommandline($cmd);
                 $process->setTimeout($timeout);
-                $process->run();
+                $process->mustRun();
                 // Executes after the command finishes.
                 if (!$process->isSuccessful()) {
                     throw new ProcessFailedException($process);
@@ -153,9 +161,8 @@ class Db
 
         extract($conf);
 
-        $process = new Process(
-            "mysqldump -u $user -p$pass -h $host -P $port $name > $path"
-        );
+        $cmd = "mysqldump -u $user -p$pass -h $host -P $port $name > $path";
+        $process = Process::fromShellCommandline($cmd);
         $process->setTimeout(999);
         $process->run();
         // Executes after the command finishes.
@@ -168,14 +175,40 @@ class Db
         $this->output->writeln("<info>$this->mark database backed up to $path</info>");
     }
 
+    public function backupOverSSH($conf) {
+        extract($conf);
+
+        $ssh = new SSH2($server, $port);
+        $ssh->setTimeout(999);
+        $auth = new RSA();
+        if (isset($ssh_key_password)) {
+            $auth->setPassword($ssh_key_password);
+        }
+        $auth->loadKey($identity_file_content);
+
+        try {
+            $login = $ssh->login($user, $auth);
+            if (!$login) {
+                throw new \Exception('Login Failed using ' . $identity_file . ' and user ' . $user . ' at ' . $server
+                  . ' ' . $ssh->getLastError());
+            }
+        } catch (\Exception $e) {
+            echo $e->getMessage() . "\n";
+            exit(1);
+        }
+
+        $ssh->exec("mysqldump -u $user -p$pass -h $host -P $port $name > $path");
+
+        return $ssh->getExitStatus();
+    }
+
     public function import($conf, $path)
     {
 
         extract($conf);
 
-        $process = new Process(
-            "mysql -u $user -p$pass -h $host -P $port $name < $path"
-        );
+        $cmd = "mysql -u $user -p$pass -h $host -P $port $name < $path";
+        $process = Process::fromShellCommandline($cmd);
         $process->setTimeout(999);
         $process->run();
         // Executes after the command finishes.
@@ -196,9 +229,8 @@ class Db
         $query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS " .
           "WHERE COLUMN_NAME LIKE '$column' AND TABLE_SCHEMA = '$name'";
 
-        $process = new Process(
-            "mysql -u $user -p$pass -h $host -P $port -e \"$query\" > $path"
-        );
+        $cmd = "mysql -u $user -p$pass -h $host -P $port -e \"$query\" > $path";
+        $process = Process::fromShellCommandline($cmd);
 
         $process->setTimeout(999);
         $process->run();
@@ -224,9 +256,8 @@ class Db
             $change_table = trim(preg_replace('/\s+/', '', $change_table));
             if ($change_table != 'TABLE_NAME') {
                 $query = "UPDATE $change_table SET $column = '$change'";
-                $process = new Process(
-                    "mysql -u $user -p$pass -h $host -P $port $name -e \"$query\""
-                );
+                $cmd = "mysql -u $user -p$pass -h $host -P $port $name -e \"$query\"";
+                $process = Process::fromShellCommandline($cmd);
 
                 $process->setTimeout(999);
                 $process->run();

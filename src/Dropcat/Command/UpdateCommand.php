@@ -5,6 +5,7 @@ namespace Dropcat\Command;
 use Dropcat\Lib\DropcatCommand;
 use Dropcat\Lib\Tracker;
 use Dropcat\Lib\CheckDrupal;
+use MongoDB\Driver\Exception\CommandException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -140,13 +141,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
             $verbose = true;
         }
 
-        $ent = '';
         $part = '';
         $exclude = '';
-
-        if ($no_entity_update == false) {
-            $ent = ' --entity-updates';
-        }
 
         if ($config_partial == true) {
             $part = ' --partial';
@@ -160,13 +156,9 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         }
         if ($version == '7') {
             $output->writeln("<info>$this->mark this is a drupal 7 site</info>");
-            // We don't run entity updates in drupal 7, so:
-            $ent = null;
         }
         if ($version == '6') {
-            $output->writeln("<info>$this->mark this is a drupal 6 site</info>");
-            // We don't run entity updates in drupal 6, so:
-            $ent = null;
+            throw new Exception('Sorry, no support for Drupal 6');
         }
         if (!isset($version) || $version == '') {
             throw new Exception('version of drupal not recognised.');
@@ -226,7 +218,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                     if ($no_db_update == false) {
                         if ($version == '8') {
                             // First rebuild cahce.
-                            $process = new Process("drush @$alias cr");
+                            $cmd = ['drush', "@$alias", 'cr'];
+                            $process = new Process($cmd);
                             $process->setTimeout(9999);
                             $process->run();
                             // Executes after the command finishes.
@@ -238,7 +231,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                                 echo $process->getOutput();
                             }
                         }
-                        $process = new Process("drush @$alias updb -y $ent");
+                        $cmd = ['drush', "@$alias", 'updb', '-y'];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
                         // Executes after the command finishes.
@@ -255,7 +249,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 
                     if ($no_cr_after_updb != true) {
                         if (($version == '7') || ($version == '6')) {
-                            $process = new Process("drush @$alias cc all");
+                            $cmd = ['drush', "@$alias", 'cc all'];
+                            $process = new Process($cmd);
 
                             $process->run();
                             // Executes after the command finishes.
@@ -270,7 +265,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                             $output->writeln("<info>$this->mark cleared cache for $site</info>");
                         }
                         if ($version == '8') {
-                            $process = new Process("drush @$alias sset system.maintenance_mode 1 && drush @$alias sql-query 'TRUNCATE TABLE sessions;'");
+                            $cmd = "drush @$alias sset system.maintenance_mode 1 && drush @$alias sql-query 'TRUNCATE TABLE sessions;'";
+                            $process = Process::fromShellCommandline($cmd);
                             $process->setTimeout(9999);
                             $process->run();
                             // Executes after the command finishes.
@@ -285,7 +281,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                             $output->writeln("<info>$this->mark $site is in maintenance mode</info>");
 
 
-                            $process = new Process("drush @$alias cr");
+                            $cmd = ['drush', "@$alias", 'cr'];
+                            $process = new Process($cmd);
                             $process->setTimeout(9999);
                             $process->run();
                             // Executes after the command finishes.
@@ -297,7 +294,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                                 echo $process->getOutput();
                             }
 
-                            $process = new Process("drush @$alias cr");
+                            $cmd = ['drush', "@$alias", 'cr'];
+                            $process = new Process($cmd);
                             $process->setTimeout(9999);
                             $process->run();
                             // Executes after the command finishes.
@@ -321,7 +319,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         // We had a bug about drush did not see drush csex, this was
                         // the solution, but it seems not needed if config_split is installed
                         // from the beginning.
-                        $process = new Process("drush @$alias cc drush");
+                        $cmd = ['drush', "@$alias", 'cc all'];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
 
@@ -335,7 +334,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                             echo $process->getOutput();
                         }
 
-                        $process = new Process("drush @$alias en config_split -y");
+                        $cmd = ["drush", "@$alias", 'en', 'config_split', "-y"];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
                         // Executes after the command finishes.
@@ -348,7 +348,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         }
                         $output->writeln("<info>$this->mark config split is enabled for $site</info>");
 
-                        $process = new Process("drush @$alias csex $config_split_settings -y");
+                        $cmd = ["drush", "$alias", "csex", "$config_split_settings", -"y"];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
                         // Executes after the command finishes.
@@ -376,7 +377,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                                 echo $process->getOutput();
                                 }*/
                                 $output->writeln("<info>$this->mark starting config import for $site</info>");
-                                $process = new Process("drush @$alias cim -y $part");
+                                $cmd = ["drush", "@$alias", 'cim', '-y', "$part"];
+                                $process = new Process($cmd);
                                 $process->setTimeout(9999);
                                 $process->run();
                                 // Executes after the command finishes.
@@ -394,7 +396,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         if ($no_config_import == false) {
                             if ($version == '8') {
                                 $output->writeln("<info>$this->mark starting config import for $site</info>");
-                                $process = new Process("drush @$alias cim -y $part");
+                                $cmd = ["drush", "@$alias", 'cim', '-y', "$part"];
+                                $process = new Process($cmd);
                                 $process->setTimeout(9999);
                                 $process->run();
                                 // Executes after the command finishes.
@@ -410,7 +413,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         }
                     }
                     if ($no_permission_rebuild == false) {
-                        $process = new Process("drush @$alias php-eval 'node_access_rebuild();'");
+                        $cmd = ["drush", "@$alias", 'php-eval', "'node_access_rebuild();'"];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
                         // Executes after the command finishes.
@@ -427,7 +431,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                     if ($version == '7') {
                         // @todo
                     } else {
-                        $process = new Process("drush @$alias sset system.maintenance_mode 0");
+                        $cmd = ['drush', "@$alias", 'sset', 'system.maintenance_mode', '0'];
+                        $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
                         // Executes after the command finishes.
@@ -446,5 +451,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         }
 
         $output->writeln("<info>$this->heart update finished</info>");
+
+        return 0;
     }
 }

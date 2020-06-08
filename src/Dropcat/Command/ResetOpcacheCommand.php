@@ -152,7 +152,8 @@ class ResetOpcacheCommand extends DropcatCommand
         $write = new Write();
         $out = '<?php' . "\n";
         $out .= 'if (function_exists(\'opcache_reset\')) {' . "\n";
-        $out .= '  opcache_reset();' . "\n";
+        $out .= '  $reset = opcache_reset();' . "\n";
+        $out .= '  if ($reset === TRUE) { echo "Opcache cleared."; }' . "\n";
         $out .= '}' . "\n";
         $out .= 'if (function_exists(\'apc_clear_cache\')) {' . "\n";
         $out .= '  apc_clear_cache();' . "\n";
@@ -171,37 +172,48 @@ class ResetOpcacheCommand extends DropcatCommand
         $upload_file = new Upload();
         $upload_file->place($remote_config, $from, $to, $verbose);
 
-        $request_url = "$url/$random_file_name";
-        if (isset($auth_pass) && isset($auth_user)) {
-            $request_url = str_replace('://', "://$auth_user:$auth_pass@", $request_url);
+        // First call is to empty the opcache, second call is to warm up the opcache.
+        $requestUrls = ["$url/$random_file_name", $url];
+        foreach ($requestUrls as $url) {
+            if (isset($auth_pass) && isset($auth_user)) {
+                $requestUrls[$url] = str_replace('://', "://$auth_user:$auth_pass@", $url);
+            }
         }
 
-        // use curl to empty opcache
-        $request = new Process("curl -Ik $request_url");
+        if ($verbose == true) {
+            $output->writeln("'<comment>' . Curling: $requestUrls[0]" . '</comment>');
+        }
+
+        // We need all the curl output here to check for the response.
+        $request = new Process(['curl', '-ik', "$requestUrls[0]"]);
         $request->setTimeout(10);
         $request->run();
         // Executes after the command finishes.
-        if (!$request->isSuccessful()) {
+        $clearOutput = $request->getOutput();
+        if ($verbose == true) {
+            $output->writeln('<comment>' . $clearOutput . '</comment>');
+        }
+        if (!$request->isSuccessful() || strpos($clearOutput, "Opcache cleared.") === FALSE) {
+            $output->writeln("<error>Opcache could not be cleared</error>");
+            $output->writeln($request->getErrorOutput());
             throw new ProcessFailedException($request);
         }
+
         if ($verbose == true) {
-            echo "\n" . $request->getOutput();
+            $output->writeln("'<comment>' . Curling: $requestUrls[1]" . '</comment>');
         }
 
-        $request_url = $url;
-        if (isset($auth_pass) && isset($auth_user)) {
-            $request_url = str_replace('://', "://$auth_user:$auth_pass@", $request_url);
-        }
-        // use curl to warm opcache
-        $request = new Process("curl -Ik $request_url");
+        // Check only the headers here.
+        $request = new Process(['curl', '-Ik', "$requestUrls[1]"]);
         $request->setTimeout(10);
         $request->run();
         // Executes after the command finishes.
-        if (!$request->isSuccessful()) {
-            throw new ProcessFailedException($request);
-        }
         if ($verbose == true) {
-            echo "\n" . $request->getOutput();
+            $output->writeln('<comment>' . $request->getOutput() . '</comment>');
+        }
+        if (!$request->isSuccessful()) {
+            $output->writeln($request->getErrorOutput());
+            throw new ProcessFailedException($request);
         }
 
         // remove the random named file from the server.
@@ -209,5 +221,7 @@ class ResetOpcacheCommand extends DropcatCommand
         $remove->file($remote_config, $to, $verbose);
 
         $output->writeln('<info>' . $this->heart . ' opcache reset</info>');
+
+        return 0;
     }
 }

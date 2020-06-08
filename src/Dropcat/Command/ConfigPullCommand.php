@@ -15,8 +15,8 @@ class ConfigPullCommand extends DropcatCommand {
 <comment>For example, to transfer config from prod to the local site into the client-config folder:</comment>
 <info>dropcat config-pull -s @prod -d @self -l client-config</info>';
 
-        $this->setName("config-pull")
-          ->setDescription("Configuration import")
+        $this->setName("config:pull")
+          ->setDescription("Configuration pull from another instance.")
           ->setDefinition(
             [
               new InputOption(
@@ -57,30 +57,30 @@ class ConfigPullCommand extends DropcatCommand {
         $timeout = $input->getOption('timeout');
 
         if ($output->isVerbose()) {
-            echo 'Pulling config from: ' . $source . "\n";
-            echo 'using config: ' . $dest . "\n";
+            $output->writeln('<comment> Pulling config from: ' . $source . '</comment>');
+            $output->writeln('<comment> using config: ' . $dest . '</comment>');
         }
 
-        $processCommand = "drush config:pull @$source @$dest -y";
+        $processCommand = ['drush', 'config:pull', "@$source", "@$dest", '-y'];
 
         if (isset($label)) {
-            $processCommand .= " --label $label";
+            $processCommand = array_merge($processCommand, ['--label', "$label"]);
         }
 
-        if (!$output->isVerbose()) {
-            $processCommand .= " -q";
+        if ($output->isVerbose()) {
+            $processCommand = array_merge($processCommand, ['-v']);
+        } else {
+            $processCommand = array_merge($processCommand, ['-q']);
         }
 
         $process = $this->runProcess($processCommand);
-
         $process->setTimeout($timeout);
-        $process->run();
-        // Executes after the command finishes.
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-        echo $process->getOutput();
+        $process->mustRun();
+
+        $output->writeln('<comment>' .$process->getOutput() . '</comment>');
 
         $output->writeln('<info>Task: config:pull finished</info>');
+
+        return 0;
     }
 }

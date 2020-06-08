@@ -227,18 +227,25 @@ To override config in dropcat.yml, using options:
             echo "path to deployed folder is: " . $web_root . '/' . $deploy_folder . "\n";
         }
 
-        $ssh->exec('ln -sfn ' . $web_root . '/' . $deploy_folder . ' ' . $web_root . '/' . $alias);
+        $cmd = 'ln -sfn ' . $web_root . '/' . $deploy_folder . ' ' . $web_root . '/' . $alias;
+        if ($output->isVerbose()) {
+            $output->writeln("<info>Symlinking: $cmd</info>");
+        }
+        $ssh->exec($cmd);
         $status = $ssh->getExitStatus();
         if ($status !== 0) {
-            echo "Could not create symlink to folder, error code $status\n";
-            exit($status);
+            $output->writeln("<info>Could not create symlink from $web_root/$deploy_folder to " .
+            "$web_root/$alias, error code $status</info>");
+            return $status;
         }
 
         if ($output->isVerbose()) {
-            echo "alias to deployed folder are: " . $web_root . '/' . $alias . "\n";
+            echo "alias to deployed folder is: " . $web_root . '/' . $alias . "\n";
         }
         $ssh->disconnect();
 
         $output->writeln("<info>$this->heart move finished</info>");
+
+        return 0;
     }
 }

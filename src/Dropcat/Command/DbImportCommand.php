@@ -67,8 +67,8 @@ To override config in dropcat.yml, using options:
                 throw new Exception('path to db is needed');
             }
         } catch (Exception $e) {
-            echo 'error:' . $e->getMessage() . "\n";
-            exit(1);
+            $output->writeln( 'error:' . $e->getMessage());
+            return 1;
         }
 
         // Remove '@' if the alias beginns with it.
@@ -78,48 +78,51 @@ To override config in dropcat.yml, using options:
 
         if (file_exists($path_to_db)) {
             if ($output->isVerbose()) {
-                echo "Db exists at $path_to_db \n";
+                $output->writeln( "<comment>Db exists at $path_to_db</comment>");
             }
             $file_type = pathinfo($path_to_db);
             switch ($file_type['extension']) {
                 case "gz":
                     if ($output->isVerbose()) {
-                        echo "Filetype is gz \n";
+                        $output->writeln( "<comment>Filetype is gz</comment>");
                     }
-                    $process = new Process(
+                    // Using bash redirection, needs fromShellCommandLine
+                    $process = Process::fromShellCommandline(
                         "gunzip $path_to_db --force -c > $db_dump"
                     );
-                        $process->setTimeout($timeout);
-                        $process->run();
-                    if (!$process->isSuccessful()) {
-                        throw new ProcessFailedException($process);
-                        exit(1);
-                    }
-                        echo $process->getOutput();
-                        $output->writeln("gzipped db dump written to $db_dump");
+                    $process->setTimeout($timeout);
+                    $process->mustRun();
+                    $output->writeln('<comment>' . $process->getOutput()
+                      . '</comment>');
+                    $output->writeln("<comment>un-gzipped $path_to_db to $db_dump</comment>");
                     break;
+                case "sql":
+                    $output->writeln("<comment>Filetype is sql</comment>");
+                    continue;
                 default: // Handle no file extension
-                    echo "only gzip (.gz) is supported for now";
-                    exit(1);
-                    break;
+                    $output->writeln("only gzip (.gz) & .sql is supported for now");
+                    return 1;
             }
         } else {
-            echo "Db does not exist at $path_to_db \n";
-            exit(1);
+            $output->writeln("Db does not exist at $path_to_db");
+            return 1;
         }
-        $process = new Process(
-            "drush @$drush_alias sql-drop -y &&
-            drush @$drush_alias sql-cli < $db_dump"
-        );
-        $process->setTimeout($timeout);
-        $process->run();
-        // executes after the command finishes
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
+        $sqlDropProcess = new Process(['drush', '@$drush_alias', 'sql-drop', '-y']);
+        $sqlDropProcess->setTimeout($timeout);
+        $sqlDropProcess->mustRun();
         if ($output->isVerbose()) {
-            echo $process->getOutput();
+            $output->writeln('<comment>' . $sqlDropProcess->getOutput() . '</comment>');
         }
+        
+        $sqlImportProcess = Process::fromShellCommandline("drush @$drush_alias sql-cli < $db_dump");
+        $sqlImportProcess->setTimeout($timeout);
+        $sqlImportProcess->mustRun();
+        if ($output->isVerbose()) {
+            $output->writeln('<comment>' . $sqlImportProcess->getOutput() . '</comment>');
+        }
+        
         $output->writeln('<info>' . $this->heart . ' db-import finished</info>');
+        
+        return 0;
     }
 }

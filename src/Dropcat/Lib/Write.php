@@ -72,6 +72,7 @@ class Write {
         $drushAlias->setSSHPort($conf['ssh-port']);
         $drushAlias->setDrushMemoryLimit($conf['drush-memory-limit']);
         $drushAlias->setLocation($conf['location']);
+        $drushAlias->setIdentityFile($conf['identityFile']);
 
         if (isset($conf['drush-script'])) {
             $drushAlias->setDrushScriptPath($conf['drush-script']);

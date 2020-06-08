@@ -246,5 +246,7 @@ To override config in dropcat.yml, using options:
                 echo "tar file is deleted \n";
             }
         }
+
+        return 0;
     }
 }
