@@ -2,7 +2,6 @@
 
 namespace Dropcat\Command;
 
-use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -48,22 +47,25 @@ To override config in dropcat.yml, using options:
         $output->writeln('<info>' . $this->start . ' node:yarn-install started</info>');
 
         $nvmDir = $input->getOption('nvm-dir');
-        if (!isset($nvmDir)) {
-            throw new Exception('<error>No nvm dir found in options.</error>');
+        $output->writeln('<info>NVM Directory: ' . var_export($this->configuration->nodeNvmDirectory(), true) . '</info>',
+            OutputInterface::VERBOSITY_DEBUG);
+
+        if (!isset($nvmDir) || empty($nvmDir)) {
+            $output->writeln("<error>$this->error Path to NVM could not be found.</error>");
+            return 1;
         }
         $nodeNvmRcFile = $input->getOption('nvmrc');
         if ($nodeNvmRcFile === null) {
             $nodeNvmRcFile = getcwd() . '/.nvmrc';
         }
         if (!file_exists($nodeNvmRcFile)) {
-            throw new Exception('<error>No .nvmrc file found.</error>');
+            $output->writeln("<error>$this->error No .nvmrc file found.</error>");
+            return 1;
         }
-        $npmInstall = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm install && yarn install");
-        $npmInstall->setTimeout(3600);
-        $npmInstall->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>');
-        }
+        $yarnInstall = Process::fromShellCommandline("bash -cl 'yarn install'");
+        $yarnInstall->setTimeout(600);
+        $yarnInstall->mustRun();
+        $output->writeln('<comment>' . $yarnInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
 
         $output->writeln('<info>' . $this->heart . ' node:yarn-install finished</info>');
 
