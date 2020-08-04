@@ -109,13 +109,13 @@ services:
         - {name: console.command}
     dropcat.command.node:npm-install:
       class: Dropcat\Command\RunNpmInstallCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
+      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
       lazy: true
       tags:
         - {name: console.command}
     dropcat.command.node:gulp:
       class: Dropcat\Command\RunGulpCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
+      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
       tags:
         - {name: console.command}
 
@@ -157,7 +157,7 @@ services:
         - {name: console.command}
     dropcat.command.node:yarn-install:
       class: Dropcat\Command\RunYarnInstallCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
+      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
       lazy: true
       tags:
         - {name: console.command}
@@ -203,3 +203,6 @@ services:
       lazy: true
       tags:
         - {name: console.command, command: security:drupal}
+    dropcat.services.nvm_wrapper_service:
+      class: Dropcat\Services\NvmWrapperService
+      arguments: ['@symfony.console_output']

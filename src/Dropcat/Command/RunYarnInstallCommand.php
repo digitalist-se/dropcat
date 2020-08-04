@@ -2,13 +2,13 @@
 
 namespace Dropcat\Command;
 
+use Dropcat\Lib\NvmCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
-class RunYarnInstallCommand extends RunCommand
+class RunYarnInstallCommand extends NvmCommand
 {
     protected function configure()
     {
@@ -22,14 +22,7 @@ To override config in dropcat.yml, using options:
         $this->setName("node:yarn-install")
             ->setDescription("do a yarn install")
             ->setDefinition(
-                array(
-                    new InputOption(
-                        'nvm-dir',
-                        'nd',
-                        InputOption::VALUE_REQUIRED,
-                        'NVM directory',
-                        $this->configuration->nodeNvmDirectory()
-                    ),
+                [
                     new InputOption(
                         'nvmrc',
                         'nc',
@@ -37,7 +30,7 @@ To override config in dropcat.yml, using options:
                         'Path to .nvmrc file',
                         $this->configuration->nodeNvmRcFile()
                     ),
-                )
+                ]
             )
             ->setHelp($HelpText);
     }
@@ -46,22 +39,8 @@ To override config in dropcat.yml, using options:
     {
         $output->writeln('<info>' . $this->start . ' node:yarn-install started</info>');
 
-        $nvmDir = $input->getOption('nvm-dir');
-        $output->writeln('<info>NVM Directory: ' . var_export($this->configuration->nodeNvmDirectory(), true) . '</info>',
-            OutputInterface::VERBOSITY_DEBUG);
+        $this->nvmService->install($input->getOption('nvmrc'));
 
-        if (!isset($nvmDir) || empty($nvmDir)) {
-            $output->writeln("<error>$this->error Path to NVM could not be found.</error>");
-            return 1;
-        }
-        $nodeNvmRcFile = $input->getOption('nvmrc');
-        if ($nodeNvmRcFile === null) {
-            $nodeNvmRcFile = getcwd() . '/.nvmrc';
-        }
-        if (!file_exists($nodeNvmRcFile)) {
-            $output->writeln("<error>$this->error No .nvmrc file found.</error>");
-            return 1;
-        }
         $yarnInstall = Process::fromShellCommandline("bash -cl 'yarn install'");
         $yarnInstall->setTimeout(600);
         $yarnInstall->mustRun();
@@ -69,6 +48,6 @@ To override config in dropcat.yml, using options:
 
         $output->writeln('<info>' . $this->heart . ' node:yarn-install finished</info>');
 
-        return 0;
+        return self::SUCCESS;
     }
 }

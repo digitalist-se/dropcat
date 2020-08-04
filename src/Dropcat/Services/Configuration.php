@@ -651,19 +651,15 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
 
     public function nodeNvmDirectory()
     {
-        if (isset($this->configuration['node']['nvm_directory'])) {
-            return $this->configuration['node']['nvm_directory'];
-        } else {
-            return null;
-        }
+        return $this->configuration['node']['nvm_directory'] ?? NULL;
     }
 
-    public function nodeNvmRcFile()
+    public function nodeNvmRcFile() : string
     {
         if (isset($this->configuration['node']['nvmrc_file'])) {
             return $this->configuration['node']['nvmrc_file'];
         } else {
-            return null;
+            return '';
         }
     }
 
