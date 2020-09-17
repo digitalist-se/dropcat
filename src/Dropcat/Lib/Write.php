@@ -129,7 +129,7 @@ class Write {
                 $this->output->writeln("<info>Successfully written $filename</info>");
             }
             $this->output->writeln("<info>$this->mark drush alias @" .
-              $conf['env'] . " created. Run <comment>drush sa</comment> to see available aliases.</info>");
+              $conf['site-name'] . '.' . $conf['env'] . " created. Run <comment>drush sa</comment> to see available aliases.</info>");
 
             return 0;
         } catch (IOExceptionInterface $e) {
