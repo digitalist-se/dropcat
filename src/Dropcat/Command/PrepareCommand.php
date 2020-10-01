@@ -2,6 +2,7 @@
 
 namespace Dropcat\Command;
 
+use Dropcat\Lib\DatabaseCommand;
 use Dropcat\Lib\DropcatCommand;
 use Dropcat\Lib\CheckDrupal;
 use Dropcat\Lib\Tracker;
@@ -23,7 +24,7 @@ use Dropcat\Lib\UUID;
 use Dropcat\Lib\Name;
 use Symfony\Component\Process\Process;
 
-class PrepareCommand extends DropcatCommand
+class PrepareCommand extends DatabaseCommand
 {
 
     protected function configure()
@@ -36,246 +37,253 @@ To override config in dropcat.yml, using options:
 <info>dropcat prepare --ssh_port=2200 --drush-alias=mysite</info>';
 
         $this->setName('prepare')
-          ->setDescription('Prepare site')
-        ->setDefinition(
-            [
-            new InputOption(
-                'drush-folder',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Drush folder',
-                $this->configuration->localEnvironmentDrushFolder()
-            ),
-            new InputOption(
-                'drush-script',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Drush script path (can be remote)'
-            ),
-            new InputOption(
-                'drush-alias',
-                'd',
-                InputOption::VALUE_OPTIONAL,
-                'Drush alias',
-                $this->configuration->siteEnvironmentDrushAlias()
-            ),
-            new InputOption(
-                'server',
-                's',
-                InputOption::VALUE_OPTIONAL,
-                'Server',
-                $this->configuration->remoteEnvironmentServerName()
-            ),
-            new InputOption(
-                'user',
-                'u',
-                InputOption::VALUE_OPTIONAL,
-                'User (ssh)',
-                $this->configuration->remoteEnvironmentSshUser()
-            ),
-            new InputOption(
-                'ssh-port',
-                'p',
-                InputOption::VALUE_OPTIONAL,
-                'SSH port',
-                $this->configuration->remoteEnvironmentSshPort()
-            ),
-            new InputOption(
-                'ssh-key-password',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'SSH key password',
-                $this->configuration->localEnvironmentSshKeyPassword()
-            ),
-            new InputOption(
-                'ssh-key',
-                'i',
-                InputOption::VALUE_OPTIONAL,
-                'SSH key',
-                $this->configuration->remoteEnvironmentIdentifyFile()
-            ),
-            new InputOption(
-                'web-root',
-                'w',
-                InputOption::VALUE_OPTIONAL,
-                'Web root',
-                $this->configuration->remoteEnvironmentWebRoot()
-            ),
-            new InputOption(
-                'alias',
-                'a',
-                InputOption::VALUE_OPTIONAL,
-                'Symlink alias',
-                $this->configuration->remoteEnvironmentAlias()
-            ),
-            new InputOption(
-                'url',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Site url',
-                $this->configuration->siteEnvironmentUrl()
-            ),
-            new InputOption(
-                'site-name',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Site name',
-                $this->configuration->siteEnvironmentName()
-            ),
-            new InputOption(
-                'mysql-host',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Mysql host',
-                $this->configuration->mysqlEnvironmentHost()
-            ),
-            new InputOption(
-                'mysql-port',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Mysql port',
-                $this->configuration->mysqlEnvironmentPort()
-            ),
-            new InputOption(
-                'mysql-db',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Mysql db',
-                $this->configuration->mysqlEnvironmentDataBase()
-            ),
-            new InputOption(
-                'mysql-user',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Mysql user',
-                $this->configuration->mysqlEnvironmentUser()
-            ),
-            new InputOption(
-                'mysql-password',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Mysql password',
-                $this->configuration->mysqlEnvironmentPassword()
-            ),
-            new InputOption(
-                'timeout',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Timeout',
-                $this->configuration->timeOut()
-            ),
-            new InputOption(
-                'tracker-file',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Trackerfile',
-                $this->configuration->trackerFile()
-            ),
-            new InputOption(
-                'create-site',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Create site',
-                $this->configuration->createSite()
-            ),
-            new InputOption(
-                'sync-folder',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Sync folder',
-                $this->configuration->syncFolder()
-            ),
-            new InputOption(
-                'config-split-folder',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Config split folder',
-                $this->configuration->configSplitFolder()
-            ),
-            new InputOption(
-                'profile',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Install profile to use',
-                $this->configuration->drupalInstallProfile()
-            ),
-            new InputOption(
-                'tracker-dir',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Tracker direcory',
-                $this->configuration->trackerDir()
-            ),
-            new InputOption(
-                'backup-path',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Backup path',
-                $this->configuration->siteEnvironmentBackupPath()
-            ),
-            new InputOption(
-                'backup-db-path',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Backup DB path (absolute path with filename)',
-                $this->configuration->siteEnvironmentBackupDbPath()
-            ),
-            new InputOption(
-                'lang',
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Language',
-                'en'
-            ),
-              new InputOption(
-                  'config-split-settings',
-                  null,
-                  InputOption::VALUE_OPTIONAL,
-                  'Config split settings to use',
-                  null
-              ),
-              new InputOption(
-                  'server-alias',
-                  null,
-                  InputOption::VALUE_OPTIONAL,
-                  'Server alias',
-                  null
-              ),
-              new InputOption(
-                  'keep-drush-alias',
-                  null,
-                  InputOption::VALUE_NONE,
-                  'do no overwrite drush alias'
-              ),
-              new InputOption(
-                  'vhost-target',
-                  null,
-                  InputOption::VALUE_OPTIONAL,
-                  'Where to create vhost (multi)',
-                  $this->configuration->vhostTarget()
-              ),
-              new InputOption(
-                  'vhost-bash-command',
-                  null,
-                  InputOption::VALUE_OPTIONAL,
-                  'Command to run on vhost creation',
-                  $this->configuration->vhostBashCommand()
-              ),
-              new InputOption(
-                  'no-partial',
-                  null,
-                  InputOption::VALUE_NONE,
-                  'do no use partial'
-              ),
-              new InputOption(
-                  'no-email',
-                  null,
-                  InputOption::VALUE_NONE,
-                  'do no send mail'
-              ),
-              ]
-        )
-          ->setHelp($HelpText);
+            ->setDescription('Prepare site')
+            ->setDefinition(
+                [
+                    new InputOption(
+                        'drush-folder',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Drush folder',
+                        $this->configuration->localEnvironmentDrushFolder()
+                    ),
+                    new InputOption(
+                        'drush-script',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Drush script path (can be remote)'
+                    ),
+                    new InputOption(
+                        'drush-alias',
+                        'd',
+                        InputOption::VALUE_OPTIONAL,
+                        'Drush alias',
+                        $this->configuration->siteEnvironmentDrushAlias()
+                    ),
+                    new InputOption(
+                        'server',
+                        's',
+                        InputOption::VALUE_OPTIONAL,
+                        'Server',
+                        $this->configuration->remoteEnvironmentServerName()
+                    ),
+                    new InputOption(
+                        'user',
+                        'u',
+                        InputOption::VALUE_OPTIONAL,
+                        'User (ssh)',
+                        $this->configuration->remoteEnvironmentSshUser()
+                    ),
+                    new InputOption(
+                        'ssh-port',
+                        'p',
+                        InputOption::VALUE_OPTIONAL,
+                        'SSH port',
+                        $this->configuration->remoteEnvironmentSshPort()
+                    ),
+                    new InputOption(
+                        'ssh-key-password',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'SSH key password',
+                        $this->configuration->localEnvironmentSshKeyPassword()
+                    ),
+                    new InputOption(
+                        'ssh-key',
+                        'i',
+                        InputOption::VALUE_OPTIONAL,
+                        'SSH key',
+                        $this->configuration->remoteEnvironmentIdentifyFile()
+                    ),
+                    new InputOption(
+                        'web-root',
+                        'w',
+                        InputOption::VALUE_OPTIONAL,
+                        'Web root',
+                        $this->configuration->remoteEnvironmentWebRoot()
+                    ),
+                    new InputOption(
+                        'alias',
+                        'a',
+                        InputOption::VALUE_OPTIONAL,
+                        'Symlink alias',
+                        $this->configuration->remoteEnvironmentAlias()
+                    ),
+                    new InputOption(
+                        'url',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Site url',
+                        $this->configuration->siteEnvironmentUrl()
+                    ),
+                    new InputOption(
+                        'site-name',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Site name',
+                        $this->configuration->siteEnvironmentName()
+                    ),
+                    new InputOption(
+                        'mysql-host',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Mysql host',
+                        $this->configuration->mysqlEnvironmentHost()
+                    ),
+                    new InputOption(
+                        'mysql-port',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Mysql port',
+                        $this->configuration->mysqlEnvironmentPort()
+                    ),
+                    new InputOption(
+                        'mysql-db',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Mysql db',
+                        $this->configuration->mysqlEnvironmentDataBase()
+                    ),
+                    new InputOption(
+                        'mysql-user',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Mysql user',
+                        $this->configuration->mysqlEnvironmentUser()
+                    ),
+                    new InputOption(
+                        'mysql-password',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Mysql password',
+                        $this->configuration->mysqlEnvironmentPassword()
+                    ),
+                    new InputOption(
+                        'timeout',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Timeout',
+                        $this->configuration->timeOut()
+                    ),
+                    new InputOption(
+                        'tracker-file',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Trackerfile',
+                        $this->configuration->trackerFile()
+                    ),
+                    new InputOption(
+                        'create-site',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Create site',
+                        $this->configuration->createSite()
+                    ),
+                    new InputOption(
+                        'sync-folder',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Sync folder',
+                        $this->configuration->syncFolder()
+                    ),
+                    new InputOption(
+                        'config-split-folder',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Config split folder',
+                        $this->configuration->configSplitFolder()
+                    ),
+                    new InputOption(
+                        'profile',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Install profile to use',
+                        $this->configuration->drupalInstallProfile()
+                    ),
+                    new InputOption(
+                        'tracker-dir',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Tracker direcory',
+                        $this->configuration->trackerDir()
+                    ),
+                    new InputOption(
+                        'backup-path',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Backup path',
+                        $this->configuration->siteEnvironmentBackupPath()
+                    ),
+                    new InputOption(
+                        'backup-db-path',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Backup DB path (absolute path with filename)',
+                        $this->configuration->siteEnvironmentBackupDbPath()
+                    ),
+                    new InputOption(
+                        'lang',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Language',
+                        'en'
+                    ),
+                    new InputOption(
+                        'config-split-settings',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Config split settings to use',
+                        null
+                    ),
+                    new InputOption(
+                        'server-alias',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Server alias',
+                        null
+                    ),
+                    new InputOption(
+                        'keep-drush-alias',
+                        null,
+                        InputOption::VALUE_NONE,
+                        'do no overwrite drush alias'
+                    ),
+                    new InputOption(
+                        'vhost-target',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Where to create vhost (multi)',
+                        $this->configuration->vhostTarget()
+                    ),
+                    new InputOption(
+                        'vhost-bash-command',
+                        null,
+                        InputOption::VALUE_OPTIONAL,
+                        'Command to run on vhost creation',
+                        $this->configuration->vhostBashCommand()
+                    ),
+                    new InputOption(
+                        'no-partial',
+                        null,
+                        InputOption::VALUE_NONE,
+                        'do no use partial'
+                    ),
+                    new InputOption(
+                        'no-email',
+                        null,
+                        InputOption::VALUE_NONE,
+                        'do no send mail'
+                    ),
+                    new InputOption(
+                        'location',
+                        'o',
+                        InputOption::VALUE_OPTIONAL,
+                        "Where to save the drush alias file.",
+                        NULL
+                    ),
+                ]
+            )
+            ->setHelp($HelpText);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -315,8 +323,12 @@ To override config in dropcat.yml, using options:
         $no_partial = $input->getOption('no-partial') ? true : false;
         $no_email = $input->getOption('no-email') ? true : false;
         $drush_memory_limit = $this->configuration->remoteEnvironmentDrushMemoryLimit();
-
-
+        $identityFile = $this->configuration->remoteEnvironmentIdentifyFile();
+        $location = $input->getOption('location');
+        $env = $input->getParameterOption([
+            '--env',
+            '-e',
+        ], getenv('DROPCAT_ENV') ?: 'dev');
 
 
         $output->writeln('<info>' . $this->start . ' prepare started</info>');
@@ -325,12 +337,13 @@ To override config in dropcat.yml, using options:
             $verbose = true;
         }
 
+        $drushAlias = $drush_alias . '.' . $env;
+        $output->writeln("Testing to connect to database...");
+        $dbExists = $this->databaseService->dbExists($drushAlias);
+        return 1;
+
         // set need variables.
         $app_name = $this->configuration->localEnvironmentAppName();
-        $env = getenv('DROPCAT_ENV');
-        if (!isset($env)) {
-            $env = 'dev';
-        }
         $mysql_root_user = $mysql_user;
         $mysql_root_pass = $mysql_password;
         $new_site_name = '';
@@ -366,27 +379,27 @@ To override config in dropcat.yml, using options:
         }
 
         $default_tracker_conf = [
-          'sites' => [
-            'default' => [
-              'db' => [
-                'name' => $mysql_db,
-                'user' => $mysql_user,
-                'pass' => $mysql_password,
-                'host' => $mysql_host,
-              ],
-              'web' => [
-                'host' => $server,
-                'user' => $user,
-                'port' => $ssh_port,
-                'id-file' => $identity_file,
-                'pass' => $ssh_key_password,
-                'alias-path' => $site_alias,
-              ],
-              'drush' => [
-                'alias' => $drush_alias,
-              ]
+            'sites' => [
+                'default' => [
+                    'db' => [
+                        'name' => $mysql_db,
+                        'user' => $mysql_user,
+                        'pass' => $mysql_password,
+                        'host' => $mysql_host,
+                    ],
+                    'web' => [
+                        'host' => $server,
+                        'user' => $user,
+                        'port' => $ssh_port,
+                        'id-file' => $identity_file,
+                        'pass' => $ssh_key_password,
+                        'alias-path' => $site_alias,
+                    ],
+                    'drush' => [
+                        'alias' => $drush_alias,
+                    ]
+                ],
             ],
-          ],
         ];
 
         // Write the default tracker.
@@ -425,7 +438,7 @@ To override config in dropcat.yml, using options:
             }
 
             $fixed_name = mb_strimwidth($new_site_name, 0, 64);
-            $mysql_user =  mb_strimwidth($new_site_name, 0, 32);
+            $mysql_user = mb_strimwidth($new_site_name, 0, 32);
             $new_site_name = mb_strimwidth($new_site_name, 0, 32);
             $site_domain = $create_site;
             $drush_alias = $fixed_name;
@@ -433,26 +446,26 @@ To override config in dropcat.yml, using options:
             $mysql_password = uniqid();
 
             $mysql_conf = [
-              'mysql-root-user' => $mysql_root_user,
-              'mysql-root-pass' => $mysql_root_pass,
-              'mysql-host' => $mysql_host,
-              'mysql-user' => $mysql_user,
-              'mysql-password' => $mysql_password,
-              'timeout' => $timeout,
+                'mysql-root-user' => $mysql_root_user,
+                'mysql-root-pass' => $mysql_root_pass,
+                'mysql-host' => $mysql_host,
+                'mysql-user' => $mysql_user,
+                'mysql-password' => $mysql_password,
+                'timeout' => $timeout,
             ];
 
             $db = new Db($verbose);
             $db->createUser($mysql_conf);
 
             $new_db_conf = [
-              'mysql-host' => $mysql_host,
-              'mysql-user' => $mysql_user,
-              'mysql-password' => $mysql_password,
-              'mysql-db' => $mysql_db,
-              'mysql-port' => $mysql_port,
-              'timeout' => $timeout,
-              'mysql-root-user' => $mysql_root_user,
-              'mysql-root-pass' => $mysql_root_pass,
+                'mysql-host' => $mysql_host,
+                'mysql-user' => $mysql_user,
+                'mysql-password' => $mysql_password,
+                'mysql-db' => $mysql_db,
+                'mysql-port' => $mysql_port,
+                'timeout' => $timeout,
+                'mysql-root-user' => $mysql_root_user,
+                'mysql-root-pass' => $mysql_root_pass,
             ];
             // Create database.
             $db = new Db($verbose);
@@ -470,30 +483,30 @@ To override config in dropcat.yml, using options:
             );
 
             $site = [
-              $site_name => [
-                'db' => [
-                  'dump' => null,
-                  'name' => $mysql_db,
-                  'user' => $mysql_user,
-                  'pass' => $mysql_password,
-                  'host' => $mysql_host,
+                $site_name => [
+                    'db' => [
+                        'dump' => null,
+                        'name' => $mysql_db,
+                        'user' => $mysql_user,
+                        'pass' => $mysql_password,
+                        'host' => $mysql_host,
+                    ],
+                    'web' => [
+                        'host' => $server,
+                        'hash' => $url_safe_hash,
+                        'user' => $user,
+                        'port' => $ssh_port,
+                        'id-file' => $identity_file,
+                        'pass' => $ssh_key_password,
+                        'alias-path' => $site_alias,
+                        'site-domain' => $site_domain,
+                        'sync-folder' => $sync_folder,
+                        'config-split-folder' => $config_split_folder,
+                    ],
+                    'drush' => [
+                        'alias' => $drush_alias,
+                    ]
                 ],
-                'web' => [
-                  'host' => $server,
-                  'hash' => $url_safe_hash,
-                  'user' => $user,
-                  'port' => $ssh_port,
-                  'id-file' => $identity_file,
-                  'pass' => $ssh_key_password,
-                  'alias-path' => $site_alias,
-                  'site-domain' => $site_domain,
-                  'sync-folder' => $sync_folder,
-                  'config-split-folder' => $config_split_folder,
-                ],
-                'drush' => [
-                  'alias' => $drush_alias,
-                ]
-              ],
             ];
 
             if (isset($server_alias)) {
@@ -501,39 +514,42 @@ To override config in dropcat.yml, using options:
             }
 
             $tracker_conf = [
-              'tracker-file' => $tracker_file,
-              'new-site' => $site,
-              'tracker-dir' => $tracker_dir,
-              'app-name' => $app_name,
+                'tracker-file' => $tracker_file,
+                'new-site' => $site,
+                'tracker-dir' => $tracker_dir,
+                'app-name' => $app_name,
             ];
 
             $write = new Tracker($verbose);
             $write->addMulti($tracker_conf);
 
             if ($keep_drush_alias === false) {
-            // Create drush alias, if it is drupal.
+                // Create drush alias, if it is drupal.
                 $check = new CheckDrupal();
                 if ($check->isDrupal()) {
                     $drush_alias_conf = [
-                      'site-name' => $site_name,
-                      'server' => $server,
-                      'user' => $user,
-                      'web-root' => $web_root,
-                      'alias' => $alias,
-                      'url' => $url,
-                      'ssh-port' => $ssh_port,
-                      'drush-script' => $drush_script,
-                      'drush-folder' => $drush_folder,
-                      'drush-alias' => $drush_alias,
-                      'drush-memory-limit' => $drush_memory_limit,
+                        'env' => $env,
+                        'site-name' => $site_name,
+                        'server' => $server,
+                        'user' => $user,
+                        'web-root' => $web_root,
+                        'alias' => $alias,
+                        'url' => $url,
+                        'ssh-port' => $ssh_port,
+                        'drush-script' => $drush_script,
+                        'drush-folder' => $drush_folder,
+                        'drush-alias' => $drush_alias,
+                        'drush-memory-limit' => $drush_memory_limit,
+                        'location' => $location,
+                        'identityFile' => $identityFile,
                     ];
                     $write = new Write();
                     $write->drushAlias($drush_alias_conf, $verbose);
                 }
             }
             $sites_php_conf = [
-              'app-name' => $app_name,
-              'tracker-file' => $tracker_file,
+                'app-name' => $app_name,
+                'tracker-file' => $tracker_file,
             ];
 
             $sitesphp = new Write();
@@ -542,9 +558,9 @@ To override config in dropcat.yml, using options:
             //echo $tracker_file;
 
             $conf = [
-              'tracker-file' => $tracker_file,
-              'site' => $site_name,
-              'app-name' => $app_name,
+                'tracker-file' => $tracker_file,
+                'site' => $site_name,
+                'app-name' => $app_name,
             ];
             $localSettings = new Write();
             $localSettings->localSettingsPhpMulti($conf);
@@ -553,13 +569,13 @@ To override config in dropcat.yml, using options:
             $target = $site_alias . '/web/sites/' . $site_domain;
 
             $remote_config = [
-              'server' => $server,
-              'user' => $user,
-              'port' => $ssh_port,
-              'key' => $identity_file,
-              'pass' => $ssh_key_password,
-              'timeout' => $timeout,
-              'target' => $target,
+                'server' => $server,
+                'user' => $user,
+                'port' => $ssh_port,
+                'key' => $identity_file,
+                'pass' => $ssh_key_password,
+                'timeout' => $timeout,
+                'target' => $target,
             ];
 
             $create = new Create();
@@ -604,18 +620,18 @@ To override config in dropcat.yml, using options:
             $bash_command = $vhost_bash_command;
 
             $vhost_config = [
-              'target' => $target,
-              'file-name' => $new_site_name,
-              'document-root' => "$site_alias/web",
-              'port' => $port,
-              'server-name' => $site_domain,
-              'extra' => $extra,
-              'bash-command' => $bash_command,
-              'server' => $server,
-              'user' => $user,
-              'ssh-port' => $ssh_port,
-              'ssh-key-password' => $ssh_key_password,
-              'identity-file' => $identity_file,
+                'target' => $target,
+                'file-name' => $new_site_name,
+                'document-root' => "$site_alias/web",
+                'port' => $port,
+                'server-name' => $site_domain,
+                'extra' => $extra,
+                'bash-command' => $bash_command,
+                'server' => $server,
+                'user' => $user,
+                'ssh-port' => $ssh_port,
+                'ssh-key-password' => $ssh_key_password,
+                'identity-file' => $identity_file,
             ];
             if (isset($server_alias)) {
                 $vhost_config['server-alias'] = $server_alias;
@@ -629,11 +645,11 @@ To override config in dropcat.yml, using options:
             $check = new CheckDrupal();
             if ($check->isDrupal()) {
                 $drush_config = [
-                  'drush-alias' => $drush_alias,
-                  'profile' => $profile,
-                  'site-name' => $site_name,
-                  'subdir' => $site_domain,
-                  'no-email' => $no_email,
+                    'drush-alias' => $drush_alias,
+                    'profile' => $profile,
+                    'site-name' => $site_name,
+                    'subdir' => $site_domain,
+                    'no-email' => $no_email,
                 ];
 
                 $install = new Install();
@@ -664,17 +680,20 @@ To override config in dropcat.yml, using options:
                 $check = new CheckDrupal();
                 if ($check->isDrupal()) {
                     $drush_alias_conf = [
-                      'site-name' => $drush_alias,
-                      'server' => $server,
-                      'user' => $user,
-                      'web-root' => $web_root,
-                      'alias' => $alias,
-                      'url' => $url,
-                      'ssh-port' => $ssh_port,
-                      'drush-script' => $drush_script,
-                      'drush-folder' => $drush_folder,
-                      'drush-alias' => $drush_alias,
-                      'drush-memory-limit' => $drush_memory_limit,
+                        'env' => $env,
+                        'site-name' => $drush_alias,
+                        'server' => $server,
+                        'user' => $user,
+                        'web-root' => $web_root,
+                        'alias' => $alias,
+                        'url' => $url,
+                        'ssh-port' => $ssh_port,
+                        'drush-script' => $drush_script,
+                        'drush-folder' => $drush_folder,
+                        'drush-alias' => $drush_alias,
+                        'drush-memory-limit' => $drush_memory_limit,
+                        'location' => $location,
+                        'identityFile' => $identityFile,
                     ];
                     $write = new Write();
                     $write->drushAlias($drush_alias_conf, $verbose);
@@ -683,14 +702,18 @@ To override config in dropcat.yml, using options:
 
             // Create database if it does not exist.
             $new_db_conf = [
-              'mysql-host' => $mysql_host,
-              'mysql-user' => $mysql_user,
-              'mysql-password' => $mysql_password,
-              'mysql-db' => $mysql_db,
-              'mysql-port' => $mysql_port,
-              'timeout' => $timeout,
-              'mysql-root-user' => $mysql_user,
-              'mysql-root-pass' => $mysql_password,
+                'drush_alias' => $drush_alias,
+                'server' => $server,
+                'user' => $user,
+                'identityFile' => $identityFile,
+                'mysql-host' => $mysql_host,
+                'mysql-user' => $mysql_user,
+                'mysql-password' => getenv('MYSQL_PASSWORD'),
+                'mysql-db' => $mysql_db,
+                'mysql-port' => $mysql_port,
+                'timeout' => $timeout,
+                'mysql-root-user' => getenv('MYSQL_ROOT_USER'),
+                'mysql-root-pass' => getenv('MYSQL_ROOT_PASSWORD'),
             ];
             if (isset($db_dump_path)) {
                 $new_db_conf['db-dump-path'] = $db_dump_path;
@@ -735,7 +758,7 @@ To override config in dropcat.yml, using options:
                 'web-root' => $web_root,
             ];
             $get_site_path = new RemotePath($verbose);
-            $real_path =  $get_site_path->siteRealPath($web_server_conf);
+            $real_path = $get_site_path->siteRealPath($web_server_conf);
 
             if (isset($real_path)) {
                 $build_tracker_conf['sites']['default']['web']['site-path'] = $real_path;

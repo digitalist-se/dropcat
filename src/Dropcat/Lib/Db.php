@@ -72,6 +72,10 @@ class Db
 
     public function createDb($conf)
     {
+        $drush_alias = $conf['drush_alias'];
+        $server = $conf['server'];
+        $user = $conf['user'];
+        $identityFile = $conf['identityFile'];
         $mysql_host = $conf['mysql-host'];
         $mysql_user = $conf['mysql-user'];
         $mysql_password = $conf['mysql-password'];
@@ -87,6 +91,16 @@ class Db
         }
 
         try {
+            $ssh = new SSH2($server);
+            $key = new RSA();
+            $key->loadKey($identityFile);
+            if (!$ssh->login($user, $key)) {
+                $err = $ssh->getErrors();
+                $this->output->writeln("<error>Error: could not ssh to $server.</error>");
+                $this->output->writeln("<error>SSH error: $err</error>");
+                return false;
+            }
+            $ssh->exec("drush sql:connect");
             $mysqli = new mysqli(
                 "$mysql_host",
                 "$mysql_user",
@@ -99,6 +113,8 @@ class Db
 
         // If db does not exist.
         if ($mysqli->select_db("$mysql_db") === false) {
+            // TODO: Update to SSH
+
             // Fix privileges for db user.
             $cmd = "mysql -u $mysql_root_user -p$mysql_root_pass -h $mysql_host " .
               "-e \"GRANT ALL PRIVILEGES ON * . * TO '$mysql_user'@'%' IDENTIFIED BY '$mysql_password'\";";

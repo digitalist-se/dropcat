@@ -98,7 +98,7 @@ To override config in dropcat.yml, using options:
                     break;
                 case "sql":
                     $output->writeln("<comment>Filetype is sql</comment>");
-                    continue;
+                    break;
                 default: // Handle no file extension
                     $output->writeln("only gzip (.gz) & .sql is supported for now");
                     return 1;

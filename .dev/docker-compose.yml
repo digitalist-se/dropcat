@@ -12,6 +12,7 @@ services:
       - ./storage/jenkins:/var/jenkins_home
       - jenkins-backup:/backup
       - ../:/opt/dropcat # Mount the repo for faster local testing in jenkins.
+      - ../../afp-global:/opt/afp-global # Mount the repo for faster local testing in jenkins.
       - type: bind
         source: ./keys/id_rsa
         target: /var/id_rsa
@@ -23,6 +24,10 @@ services:
     container_name: web
     build:
       context: services/apache/
+    environment:
+      # Linux: set environment variable XDEBUG_REMOTE_HOST to your IP address.
+      # Mac: use the default host.docker.internal
+      XDEBUG_CONFIG: remote_host=${XDEBUG_REMOTE_HOST:-host.docker.internal}
     volumes:
       - $PWD/apache:/var/www/html
   db:

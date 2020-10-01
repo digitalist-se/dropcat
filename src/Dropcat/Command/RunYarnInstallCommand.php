@@ -2,14 +2,13 @@
 
 namespace Dropcat\Command;
 
-use Exception;
+use Dropcat\Lib\NvmCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
-class RunYarnInstallCommand extends RunCommand
+class RunYarnInstallCommand extends NvmCommand
 {
     protected function configure()
     {
@@ -23,14 +22,7 @@ To override config in dropcat.yml, using options:
         $this->setName("node:yarn-install")
             ->setDescription("do a yarn install")
             ->setDefinition(
-                array(
-                    new InputOption(
-                        'nvm-dir',
-                        'nd',
-                        InputOption::VALUE_REQUIRED,
-                        'NVM directory',
-                        $this->configuration->nodeNvmDirectory()
-                    ),
+                [
                     new InputOption(
                         'nvmrc',
                         'nc',
@@ -38,7 +30,7 @@ To override config in dropcat.yml, using options:
                         'Path to .nvmrc file',
                         $this->configuration->nodeNvmRcFile()
                     ),
-                )
+                ]
             )
             ->setHelp($HelpText);
     }
@@ -47,26 +39,15 @@ To override config in dropcat.yml, using options:
     {
         $output->writeln('<info>' . $this->start . ' node:yarn-install started</info>');
 
-        $nvmDir = $input->getOption('nvm-dir');
-        if (!isset($nvmDir)) {
-            throw new Exception('<error>No nvm dir found in options.</error>');
-        }
-        $nodeNvmRcFile = $input->getOption('nvmrc');
-        if ($nodeNvmRcFile === null) {
-            $nodeNvmRcFile = getcwd() . '/.nvmrc';
-        }
-        if (!file_exists($nodeNvmRcFile)) {
-            throw new Exception('<error>No .nvmrc file found.</error>');
-        }
-        $npmInstall = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm install && yarn install");
-        $npmInstall->setTimeout(3600);
-        $npmInstall->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>');
-        }
+        $this->nvmService->install($input->getOption('nvmrc'));
+
+        $yarnInstall = Process::fromShellCommandline("bash -cl 'yarn install'");
+        $yarnInstall->setTimeout(600);
+        $yarnInstall->mustRun();
+        $output->writeln('<comment>' . $yarnInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
 
         $output->writeln('<info>' . $this->heart . ' node:yarn-install finished</info>');
 
-        return 0;
+        return self::SUCCESS;
     }
 }

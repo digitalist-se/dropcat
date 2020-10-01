@@ -2,14 +2,12 @@
 
 namespace Dropcat\Command;
 
-use Exception;
+use Dropcat\Lib\NvmCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
-class RunGulpCommand extends RunCommand
+class RunGulpCommand extends NvmCommand
 {
     protected function configure()
     {
@@ -32,20 +30,6 @@ class RunGulpCommand extends RunCommand
                     $this->configuration->gulpDirectory()
                 ),
                 new InputOption(
-                    'nvm-dir',
-                    'nd',
-                    InputOption::VALUE_REQUIRED,
-                    'NVM directory',
-                    $this->configuration->nodeNvmDirectory()
-                ),
-                new InputOption(
-                    'nvmrc',
-                    'nc',
-                    InputOption::VALUE_OPTIONAL,
-                    'Path to .nvmrc file',
-                    $this->configuration->nodeNvmRcFile()
-                ),
-                new InputOption(
                     'gulp-options',
                     'go',
                     InputOption::VALUE_OPTIONAL,
@@ -66,37 +50,25 @@ class RunGulpCommand extends RunCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $nvmDir = $input->getOption('nvm-dir');
         $gulpDir = $input->getOption('gulp-dir');
         $gulpOptions = $input->getOption('gulp-options');
         $nodeEnv = $input->getOption('node-env');
-        $nodeNvmRcFile = $input->getOption('nvmrc');
 
         $output->writeln('<info>' . $this->start . ' node:gulp started</info>');
 
         if ($gulpDir === null) {
             $gulpDir = '.';
         }
-        if ($nodeNvmRcFile === null) {
-            $nodeNvmRcFile = getcwd() . '/.nvmrc';
-        }
-        if (!file_exists($nodeNvmRcFile)) {
-            throw new Exception('<error>No .nvmrc file found.</error>');
-        }
 
         $env = null;
         if (isset($nodeEnv)) {
             $env = 'NODE_ENV=' . $nodeEnv;
         }
-        $gulp = Process::fromShellCommandline("bash -c 'source $nvmDir/nvm.sh' && . $nvmDir/nvm.sh && nvm use && cd $gulpDir && $env gulp $gulpOptions");
-        $gulp->setTimeout(3600);
-        $gulp->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $gulp->getOutput() . '</comment>');
+
+        if (!$this->nvmService->useAndRunCommand("$env node_modules/gulp/bin/gulp.js --cwd $gulpDir $gulpOptions")) {
+            return self::FAILURE;
         }
 
-        $output->writeln('<info>' . $this->heart . ' node:gulp finished</info>');
-
-        return 0;
+        return self::SUCCESS;
     }
 }
