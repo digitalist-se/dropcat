@@ -340,7 +340,6 @@ To override config in dropcat.yml, using options:
         $drushAlias = $drush_alias . '.' . $env;
         $output->writeln("Testing to connect to database...");
         $dbExists = $this->databaseService->dbExists($drushAlias);
-        return 1;
 
         // set need variables.
         $app_name = $this->configuration->localEnvironmentAppName();
@@ -529,6 +528,7 @@ To override config in dropcat.yml, using options:
                 if ($check->isDrupal()) {
                     $drush_alias_conf = [
                         'env' => $env,
+                        'drush-alias-name' => $drush_alias,
                         'site-name' => $site_name,
                         'server' => $server,
                         'user' => $user,
@@ -536,9 +536,6 @@ To override config in dropcat.yml, using options:
                         'alias' => $alias,
                         'url' => $url,
                         'ssh-port' => $ssh_port,
-                        'drush-script' => $drush_script,
-                        'drush-folder' => $drush_folder,
-                        'drush-alias' => $drush_alias,
                         'drush-memory-limit' => $drush_memory_limit,
                         'location' => $location,
                         'identityFile' => $identityFile,
@@ -681,16 +678,14 @@ To override config in dropcat.yml, using options:
                 if ($check->isDrupal()) {
                     $drush_alias_conf = [
                         'env' => $env,
-                        'site-name' => $drush_alias,
+                        'drush-alias-name' => $drush_alias,
+                        'site-name' => $site_name,
                         'server' => $server,
                         'user' => $user,
                         'web-root' => $web_root,
                         'alias' => $alias,
                         'url' => $url,
                         'ssh-port' => $ssh_port,
-                        'drush-script' => $drush_script,
-                        'drush-folder' => $drush_folder,
-                        'drush-alias' => $drush_alias,
                         'drush-memory-limit' => $drush_memory_limit,
                         'location' => $location,
                         'identityFile' => $identityFile,
@@ -719,8 +714,7 @@ To override config in dropcat.yml, using options:
                 $new_db_conf['db-dump-path'] = $db_dump_path;
             }
 
-            $db = new Db();
-            $db->createDb($new_db_conf);
+            $this->databaseService->createDb($drush_alias, $new_db_conf);
 
             // Write rollback tracker.
 
