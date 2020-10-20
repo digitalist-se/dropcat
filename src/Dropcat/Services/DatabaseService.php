@@ -65,6 +65,11 @@ class DatabaseService
         $mysqlPass = $conf['mysql-password'];
         $mysqlDb = $conf['mysql-db'];
 
+        if ($this->dbExists($drushAlias)) {
+            $this->output->writeln("<info>Database exists already.</info>");
+            return true;
+        }
+
         # "mysql://drupal_db_user:drupal_db_password@127.0.0.1/drupal_db"
         $dbURL = "mysql://$mysqlUser:$mysqlPass@$mysqlHost:$mysqlPort/$mysqlDb";
         $this->output->writeln("<comment>Using drush alias: $drushAlias</comment>", OutputInterface::VERBOSITY_VERBOSE);

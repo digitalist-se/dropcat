@@ -337,10 +337,6 @@ To override config in dropcat.yml, using options:
             $verbose = true;
         }
 
-        $drushAlias = $drush_alias . '.' . $env;
-        $output->writeln("Testing to connect to database...");
-        $dbExists = $this->databaseService->dbExists($drushAlias);
-
         // set need variables.
         $app_name = $this->configuration->localEnvironmentAppName();
         $mysql_root_user = $mysql_user;
@@ -729,6 +725,8 @@ To override config in dropcat.yml, using options:
             $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$id.yml";
 
             $create_build_tracker_dir = ['mkdir', '-p', "$build_tracker_dir"];
+
+            $output->writeln("<comment>Creating tracker file at $build_tracker_dir</comment>", OutputInterface::VERBOSITY_VERBOSE);
 
             $mkdir = $this->runProcess($create_build_tracker_dir);
             $mkdir->setTimeout($timeout);
