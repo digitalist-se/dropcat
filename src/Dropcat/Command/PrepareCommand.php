@@ -286,6 +286,33 @@ To override config in dropcat.yml, using options:
             ->setHelp($HelpText);
     }
 
+    /**
+     * Helper function to create directories.
+     *
+     * @param string $path
+     * @param int $timeout
+     * @return array
+     */
+    protected function _makeDirectory(string $path, int $timeout = 10) {
+        $command = ['mkdir', '-p', "$path"];
+
+        $mkdir = $this->runProcess($command);
+        $mkdir->setTimeout($timeout);
+        $mkdir->mustRun();
+        // Executes after the command finishes.
+        if (!$mkdir->isSuccessful()) {
+            return [
+                'exitCode' => $mkdir->getExitCode(),
+                'output' => $mkdir->getErrorOutput()
+            ];
+        }
+
+        return [
+            'exitCode' => $mkdir->getExitCode(),
+            'output' => $mkdir->getOutput()
+        ];
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $drush_script = $input->getOption('drush-script');
@@ -360,17 +387,12 @@ To override config in dropcat.yml, using options:
         }
 
         // Create backup dir if it does not exist.
-        $db_dump_path_mkdir = ['mkdir', '-p', "$backups_dir"];
-        $create_backup_dir = $this->runProcess($db_dump_path_mkdir);
-        $create_backup_dir->setTimeout($timeout);
-        $create_backup_dir->mustRun();
-        // Executes after the command finishes.
-        if (!$create_backup_dir->isSuccessful()) {
-            throw new ProcessFailedException($create_backup_dir);
-        }
-        if ($verbose == true) {
-            $out = $create_backup_dir->getOutput();
-            $output->writeln('<comment>' . $out . '</comment>');
+        $res = $this->_makeDirectory($backups_dir);
+        if ($res['exitCode'] === 0) {
+            $output->writeln("<comment>Created  tracker dir at $backups_dir</comment>",
+                OutputInterface::VERBOSITY_VERBOSE);
+        } else {
+            throw new Exception("Could not create tracker dir at $backups_dir", 1);
         }
 
         $default_tracker_conf = [
@@ -716,28 +738,20 @@ To override config in dropcat.yml, using options:
 
             $build_tracker_conf = $default_tracker_conf;
 
-            $id = getenv('BUILD_ID');
-            if (!isset($id)) {
-                $id = $server_time;
+            $build_id = getenv('BUILD_ID');
+            if (!isset($build_id)) {
+                $build_id = $server_time;
             }
 
             $build_tracker_dir = "$tracker_dir" . '/' . "$app_name" . '/';
-            $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$id.yml";
+            $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$build_id.yml";
 
-            $create_build_tracker_dir = ['mkdir', '-p', "$build_tracker_dir"];
-
-            $output->writeln("<comment>Creating tracker file at $build_tracker_dir</comment>", OutputInterface::VERBOSITY_VERBOSE);
-
-            $mkdir = $this->runProcess($create_build_tracker_dir);
-            $mkdir->setTimeout($timeout);
-            $mkdir->mustRun();
-            // Executes after the command finishes.
-            if (!$mkdir->isSuccessful()) {
-                throw new ProcessFailedException($mkdir);
-            }
-            if ($verbose == true) {
-                $out = $mkdir->getOutput();
-                $output->writeln('<comment>' . $out . '</comment>');
+            $res = $this->_makeDirectory($build_tracker_dir);
+            if ($res['exitCode'] === 0) {
+                $output->writeln("<comment>Created  tracker dir at $build_tracker_dir</comment>",
+                    OutputInterface::VERBOSITY_VERBOSE);
+            } else {
+                throw new Exception("Could not create tracker dir at $build_tracker_dir", 1);
             }
 
             $web_server_conf = [
@@ -756,7 +770,6 @@ To override config in dropcat.yml, using options:
                 $build_tracker_conf['sites']['default']['web']['site-path'] = $real_path;
             }
             $build_tracker_conf['created'] = $server_time;
-            $build_id = getenv('BUILD_ID');
 
             if (isset($build_id)) {
                 $build_tracker_conf['build-id'] = $build_id;
