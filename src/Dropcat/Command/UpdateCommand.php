@@ -116,12 +116,15 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         $multi = $input->getOption('multi') ? true : false;
         $no_cr_after_updb = $input->getOption('no-cache-rebuild-after-updatedb') ? true : false;
         $config_split_settings = $input->getOption('config-split-settings');
+        $env = $input->getParameterOption([
+            '--env',
+            '-e',
+        ], getenv('DROPCAT_ENV') ?: 'dev');
 
         // If we have an option for config split settings, config split should be true.
         if (isset($config_split_settings)) {
             $config_split = true;
         }
-        $env = getenv('DROPCAT_ENV');
 
         $output->writeln('<info>' . $this->start . ' update started</info>');
 
@@ -151,11 +154,14 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         $check = new CheckDrupal();
         $version = $check->version();
 
+        if ($version == '9') {
+            $output->writeln("<info>$this->mark this is a drupal 9 site</info>");
+        }
         if ($version == '8') {
             $output->writeln("<info>$this->mark this is a drupal 8 site</info>");
         }
         if ($version == '7') {
-            $output->writeln("<info>$this->mark this is a drupal 7 site</info>");
+            throw new Exception('Sorry, no support for Drupal 7');
         }
         if ($version == '6') {
             throw new Exception('Sorry, no support for Drupal 6');
@@ -248,23 +254,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                     }
 
                     if ($no_cr_after_updb != true) {
-                        if (($version == '7') || ($version == '6')) {
-                            $cmd = ['drush', "@$alias", 'cc all'];
-                            $process = new Process($cmd);
-
-                            $process->run();
-                            // Executes after the command finishes.
-                            if (!$process->isSuccessful()) {
-                                $output->writeln("<info>$this->error could not clear cache for $site</info>");
-                                throw new ProcessFailedException($process);
-                            }
-                            if ($output->isVerbose()) {
-                                echo $process->getOutput();
-                            }
-
-                            $output->writeln("<info>$this->mark cleared cache for $site</info>");
-                        }
-                        if ($version == '8') {
+                        if ($version == '8' || $version == '9') {
                             $cmd = "drush @$alias sset system.maintenance_mode 1 && drush @$alias sql-query 'TRUNCATE TABLE sessions;'";
                             $process = Process::fromShellCommandline($cmd);
                             $process->setTimeout(9999);
@@ -312,10 +302,6 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                     }
 
                     if ($config_split == true) {
-                        if ($version == '7') {
-                            $output->writeln('<info>Seems like you are trying to run config split ' .
-                              'on a drupal 7 site</info>');
-                        }
                         // We had a bug about drush did not see drush csex, this was
                         // the solution, but it seems not needed if config_split is installed
                         // from the beginning.
@@ -363,19 +349,6 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         $output->writeln("<info>$this->mark config split export done for $site</info>");
                         if ($no_config_import == false) {
                             if ($version == '8') {
-                                // Remove partial for now.
-                                /*  $output->writeln("<info>$this->mark starting partial config import for $site</info>");
-                                $process = new Process("drush @$alias cim -y --partial");
-                                $process->setTimeout(9999);
-                                $process->run();
-                                // Executes after the command finishes.
-                                if (!$process->isSuccessful()) {
-                                $output->writeln("<info>$this->error config import failed for $site</info>");
-                                throw new ProcessFailedException($process);
-                                }
-                                if ($output->isVerbose()) {
-                                echo $process->getOutput();
-                                }*/
                                 $output->writeln("<info>$this->mark starting config import for $site</info>");
                                 $cmd = ["drush", "@$alias", 'cim', '-y', "$part"];
                                 $process = new Process($cmd);
@@ -428,21 +401,17 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         $output->writeln("<info>$this->mark permissions rebuilt for $site</info>");
                     }
 
-                    if ($version == '7') {
-                        // @todo
-                    } else {
-                        $cmd = ['drush', "@$alias", 'sset', 'system.maintenance_mode', '0'];
-                        $process = new Process($cmd);
-                        $process->setTimeout(9999);
-                        $process->run();
-                        // Executes after the command finishes.
-                        if (!$process->isSuccessful()) {
-                            $output->writeln("<info>$this->error could not remove $site from maintenance mode</info>");
-                            throw new ProcessFailedException($process);
-                        }
-                        if ($output->isVerbose()) {
-                            echo $process->getOutput();
-                        }
+                    $cmd = ['drush', "@$alias", 'sset', 'system.maintenance_mode', '0'];
+                    $process = new Process($cmd);
+                    $process->setTimeout(9999);
+                    $process->run();
+                    // Executes after the command finishes.
+                    if (!$process->isSuccessful()) {
+                        $output->writeln("<info>$this->error could not remove $site from maintenance mode</info>");
+                        throw new ProcessFailedException($process);
+                    }
+                    if ($output->isVerbose()) {
+                        echo $process->getOutput();
                     }
 
                     $output->writeln("<info>$this->mark $site is now online.</info>");

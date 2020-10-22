@@ -196,7 +196,7 @@ class ResetOpcacheCommand extends DropcatCommand
         if (!$request->isSuccessful() || strpos($clearOutput, "Opcache cleared.") === FALSE) {
             $output->writeln("<error>Opcache could not be cleared</error>");
             $output->writeln($request->getErrorOutput());
-            throw new ProcessFailedException($request);
+            throw new \Exception();
         }
 
         if ($verbose == true) {

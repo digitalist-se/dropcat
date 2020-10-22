@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/php
-FROM php:7.2-apache
+FROM php:7.3-apache
 ARG sshpass=root
 RUN apt-get -y update && \
     apt-get -y install \
@@ -14,7 +14,13 @@ RUN apt-get -y update && \
     rsync \
     mariadb-client
 
-RUN docker-php-ext-install gd pdo_mysql mysqli opcache
+RUN pecl install xdebug && \
+    echo "xdebug.remote_enable=1\n" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+         "xdebug.coverage_enable=1\n" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+         "xdebug.idekey=\"PHPSTORM\"\n" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+         "xdebug.remote_port=9001\n" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    docker-php-ext-install gd pdo_mysql mysqli opcache && \
+    docker-php-ext-enable xdebug
 
 # Use the default production configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
