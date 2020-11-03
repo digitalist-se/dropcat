@@ -31,7 +31,7 @@ site:
     symlink: /var/www/html/test_latest_stage/web/sites/default/files
     url: http://web
     name: mystagesite
-    profile: umami
+    profile: demo_umami
     profile_options: NULL
 
 mysql:

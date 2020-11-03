@@ -48,24 +48,31 @@ in `.dev/example/.dropcat`
 # Use local dropcat, mounted on /opt/dropcat
 DROPCAT=/opt/dropcat/app/dropcat
 DROPCAT_ENV=dev
+export BACKUP_NAME=${BUILD_ID}_${BUILD_DATE}
+export DB_DUMP_PATH=/backup/${JOB_NAME}/${BACKUP_NAME}.sql
+export BUILD_DATE="$(date +"%Y%m%d")"
 
 install_drupal() {
+  mkdir deploy
+  cd deploy
   composer create-project --ignore-platform-reqs drupal/recommended-project .
   # Workaround for drupal 8.8.0
   chmod -R +w web/sites/default
   composer require drush/drush --dev --ignore-platform-reqs
   drush site:install demo_umami --account-pass=admin --db-url=mysql://root:root@db:3306/dropcat -y
-  mkdir -p ${WORKSPACE}/.dropcat
-  cp /opt/dropcat/.dev/example/.dropcat/dropcat.dev.yml ${WORKSPACE}/.dropcat
+  mkdir -p ${WORKSPACE}/deploy/.dropcat
+  cp /opt/dropcat/.dev/example/.dropcat/dropcat.dev.yml ${WORKSPACE}/deploy/.dropcat
 }
 
-if [ ! -f composer.json ]; then
-  install_drupal
-fi
 
-### Dropcat Commands
-${DROPCAT} debug:check-connection
-${DROPCAT} about
+if [ ! -d deploy ]; then
+  echo "installing drupal"
+  install_drupal
+  
+  else
+    cp /opt/dropcat/.dev/example/.dropcat/dropcat.dev.yml ${WORKSPACE}/deploy/.dropcat/.
+    cd deploy
+fi
 ```
 
 ## Web
