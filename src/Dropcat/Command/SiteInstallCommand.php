@@ -68,7 +68,6 @@ To override config in dropcat.yml, using options:
                     $this->configuration->siteEnvironmentDrushInstallOptions()
                 ),
 
-
               )
         )
           ->setHelp($HelpText);
@@ -83,7 +82,7 @@ To override config in dropcat.yml, using options:
         $admin_user       = $input->getOption('admin_user');
         $install_options  = $input->getOption('install_options');
 
-        $output->writeln('<info>' . $this->start . ' site-install started</info>');
+        $output->writeln('<info>' . $this->start . ' site install started</info>');
 
         $cmd = [
           'drush',

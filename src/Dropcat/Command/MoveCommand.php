@@ -15,12 +15,13 @@ class MoveCommand extends DropcatCommand
 
     protected function configure()
     {
-        $HelpText = 'The <info>%command.name%</info> connects to remote server and unpacks the site tar and moves it to path.
+        $HelpText = 'The <info>%command.name%</info> connects to remote server and unpacks the site tar and moves 
+it to defined path.
 <comment>Samples:</comment>
-To run with default options (using config from dropcat.yml in the currrent dir):
-<info>dropcat move</info>
+To run with default options:
+<info>dropcat %command.name%</info>
 To override config in dropcat.yml, using options:
-<info>dropcat move -server 127.0.0.0 -i my_pub.key</info>';
+<info>dropcat %command.name% --server 127.0.0.0 -i my_pub.key</info>';
 
         $this->setName("site:move")
             ->setAliases(["move"])
@@ -118,12 +119,12 @@ To override config in dropcat.yml, using options:
                         'Symlink alias to deployed site',
                         $this->configuration->remoteEnvironmentAlias()
                     ),
-                new InputOption(
-                    'keeptar',
-                    null,
-                    InputOption::VALUE_NONE,
-                    'Keep tar after move (defaults to no)'
-                ),
+                    new InputOption(
+                        'keeptar',
+                        null,
+                        InputOption::VALUE_NONE,
+                        'Keep tar after move (defaults to no)'
+                    ),
                 )
             )
             ->setHelp($HelpText);

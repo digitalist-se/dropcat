@@ -21,7 +21,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 To override config in dropcat.yml, using options:
 <info>dropcat upload -server 127.0.0.0 -i my_pub.key</info>';
 
-        $this->setName("upload")
+        $this->setName("site:upload")
+            ->setAliases(["upload"])
           ->setDescription("Upload to server")
         ->setDefinition(
             array(

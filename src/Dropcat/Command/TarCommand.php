@@ -18,7 +18,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 To override config in dropcat.yml, using options:
 <info>dropcat tar -f foofolder -t ./ -se __ -a mysitename -bi 42</info>';
 
-        $this->setName("tar")
+        $this->setName("site:tar")
+            ->setAliases(["tar"])
           ->setDescription("Tar folder")
         ->setDefinition(
             array(
