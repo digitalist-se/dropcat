@@ -15,7 +15,7 @@ class MoveCommand extends DropcatCommand
 
     protected function configure()
     {
-        $HelpText = 'The <info>move</info> connects to remote server and unpacks the site tar and moves it to path.
+        $HelpText = 'The <info>%command.name%</info> connects to remote server and unpacks the site tar and moves it to path.
 <comment>Samples:</comment>
 To run with default options (using config from dropcat.yml in the currrent dir):
 <info>dropcat move</info>

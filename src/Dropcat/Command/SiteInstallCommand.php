@@ -13,7 +13,7 @@ class SiteInstallCommand extends DropcatCommand
 {
     protected function configure()
     {
-        $HelpText = 'The <info>site-install</info> command installs a drupal site,.
+        $HelpText = 'The <info>%command.name%</info> command installs a drupal site,.
 <comment>Samples:</comment>
 To run with default options (using config from dropcat.yml in the currrent dir):
 <info>dropcat site-install</info>
@@ -87,13 +87,13 @@ To override config in dropcat.yml, using options:
 
         $cmd = [
           'drush',
-          '@$drush_alias',
+          "@$drush_alias",
           'si',
-          '$profile',
-          '--account-name=$admin_user',
-          '--account-pass=$admin_pass',
+          "$profile",
+          "--account-name=$admin_user",
+          "--account-pass=$admin_pass",
           '-y',
-          '$install_options'
+          "$install_options"
         ];
         $process = new Process($cmd);
         $process->setTimeout($timeout);
@@ -102,7 +102,7 @@ To override config in dropcat.yml, using options:
             $output->writeln('<comment>' . $process->getOutput() . '</comment>');
         }
 
-        $output->writeln('<info>' . $this->heart . ' site-install finished</info>');
+        $output->writeln('<info>' . $this->heart . ' site install finished</info>');
 
         return 0;
     }

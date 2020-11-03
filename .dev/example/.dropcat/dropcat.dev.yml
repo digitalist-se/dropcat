@@ -15,8 +15,8 @@ remote:
     server: web
     ssh_user: root
     ssh_port: 22
-    target_path: /mypath
-    identity_file: /var/id_rsa
+    target_path: /var/www/html
+    identity_file: /var/jenkins_home/.ssh/id_rsa
     web_root: /var/www/html
     temp_folder: /tmp
     alias: test_latest_stage
@@ -24,7 +24,7 @@ remote:
 
 site:
   environment:
-    drush_alias: mystagesite.dev
+    drush_alias: mystagesite
     backup_path: /backup
     config_name: NULL
     original_path: /var/www/html/shared/mystagesite/files
@@ -52,8 +52,6 @@ deploy:
     - .vagrant
     - provision
     - nbproject
-  jenkins_server: http://foobar:token@jenkins.server.net:8080
-  jenkins_job: Dropcat
 
 tracker:
   dir: /var/jenkins_home/trackerdir

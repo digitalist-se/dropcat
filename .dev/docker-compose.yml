@@ -16,7 +16,7 @@ services:
       - type: bind
         source: ./keys/id_rsa
         target: /var/id_rsa
-      - /srv/www/dropcat:/opt/dropcat
+      #- /srv/www/dropcat:/opt/dropcat
 
   web:
     ports:

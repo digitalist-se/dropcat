@@ -33,7 +33,7 @@ _|    _|  _|        _|    _|  _|    _|  _|        _|    _|    _|
     {
         $output->writeln('<comment>' . static::$logo . '</comment>');
         $output->writeln("<info>dropcat is an open source website delivery tool. " .
-          "\ndeveloped by digitalist group sweden. meow! $this->cat" .
+          "\ndeveloped by digitalist group in sweden. meow! $this->cat" .
           "</info>");
         return 0;
     }
