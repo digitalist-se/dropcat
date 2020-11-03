@@ -6,7 +6,8 @@ use Dropcat\Lib\DropcatCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class AboutCommand extends DropcatCommand {
+class AboutCommand extends DropcatCommand
+{
 
     protected static $defaultName = 'about';
 
@@ -19,7 +20,8 @@ _|    _|  _|        _|    _|  _|    _|  _|        _|    _|    _|
                               _|
                               _|';
 
-    protected function configure() {
+    protected function configure()
+    {
         $HelpText = '<info>Display the about</info>';
 
         $this->setName("about")
@@ -27,7 +29,8 @@ _|    _|  _|        _|    _|  _|    _|  _|        _|    _|    _|
           ->setHelp($HelpText);
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         $output->writeln('<comment>' . static::$logo . '</comment>');
         $output->writeln("<info>dropcat is an open source website delivery tool. " .
           "\ndeveloped by digitalist group sweden. meow! $this->cat" .

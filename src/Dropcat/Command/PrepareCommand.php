@@ -36,7 +36,8 @@ To run with default options (using config from dropcat.yml):
 To override config in dropcat.yml, using options:
 <info>dropcat prepare --ssh_port=2200 --drush-alias=mysite</info>';
 
-        $this->setName('prepare')
+        $this->setName('site:prepare')
+            ->setAliases(["prepare"])
             ->setDescription('Prepare site')
             ->setDefinition(
                 [
@@ -279,7 +280,7 @@ To override config in dropcat.yml, using options:
                         'o',
                         InputOption::VALUE_OPTIONAL,
                         "Where to save the drush alias file.",
-                        NULL
+                        null
                     ),
                 ]
             )
@@ -293,7 +294,8 @@ To override config in dropcat.yml, using options:
      * @param int $timeout
      * @return array
      */
-    protected function _makeDirectory(string $path, int $timeout = 10) {
+    protected function _makeDirectory(string $path, int $timeout = 10)
+    {
         $command = ['mkdir', '-p', "$path"];
 
         $mkdir = $this->runProcess($command);
@@ -389,8 +391,10 @@ To override config in dropcat.yml, using options:
         // Create backup dir if it does not exist.
         $res = $this->_makeDirectory($backups_dir);
         if ($res['exitCode'] === 0) {
-            $output->writeln("<comment>Created  tracker dir at $backups_dir</comment>",
-                OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln(
+                "<comment>Created  tracker dir at $backups_dir</comment>",
+                OutputInterface::VERBOSITY_VERBOSE
+            );
         } else {
             throw new Exception("Could not create tracker dir at $backups_dir", 1);
         }
@@ -748,8 +752,10 @@ To override config in dropcat.yml, using options:
 
             $res = $this->_makeDirectory($build_tracker_dir);
             if ($res['exitCode'] === 0) {
-                $output->writeln("<comment>Created  tracker dir at $build_tracker_dir</comment>",
-                    OutputInterface::VERBOSITY_VERBOSE);
+                $output->writeln(
+                    "<comment>Created  tracker dir at $build_tracker_dir</comment>",
+                    OutputInterface::VERBOSITY_VERBOSE
+                );
             } else {
                 throw new Exception("Could not create tracker dir at $build_tracker_dir", 1);
             }

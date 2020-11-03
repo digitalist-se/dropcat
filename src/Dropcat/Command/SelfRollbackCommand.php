@@ -11,7 +11,8 @@ class SelfRollbackCommand extends DropcatCommand
     protected function configure()
     {
         $this
-            ->setName('self-rollback')
+            ->setName('self:rollback')
+            ->setAliases(["self-rollback"])
             ->setDescription('Rollbacks dropcat.phar to the last version');
     }
 

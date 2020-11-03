@@ -49,6 +49,9 @@ class VarnishPurgeCommand extends DropcatCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
+        # we neeed to handle errors...
+        # https://stackoverflow.com/questions/40096022/how-to-handle-fsockopen-error-in-php
         $varnish_port = $input->getOption('varnish-port');
         $varnish_ip = $input->getOption('varnish-ip');
         $url = $input->getOption('url');
@@ -64,13 +67,12 @@ class VarnishPurgeCommand extends DropcatCommand
                 10
             );
 
-            if ($url){
+            if ($url) {
                 $target = $url;
-            }
-            else {
+            } else {
                 $target = $this->configuration->siteEnvironmentUrl();
             }
-            $host = parse_url($target,PHP_URL_HOST);
+            $host = parse_url($target, PHP_URL_HOST);
 
             // Prepare the command to send
             $cmd = "DOMAINPURGE / HTTP/1.0\r\n";

@@ -21,7 +21,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 To override config in dropcat.yml, using options:
 <info>dropcat dbimport -d mysite -i /var/dump -t 120</info>';
 
-        $this->setName("db-import")
+        $this->setName("db:import")
+            ->setAliases(["db-import"])
             ->setDescription("import database")
             ->setDefinition(
                 array(
@@ -29,21 +30,21 @@ To override config in dropcat.yml, using options:
                         'drush_alias',
                         'd',
                         InputOption::VALUE_OPTIONAL,
-                        'Drush alias',
+                        'Drush alias to import db from',
                         $this->configuration->siteEnvironmentDrushAlias()
                     ),
                     new InputOption(
                         'db_import',
-                        'i',
+                        null,
                         InputOption::VALUE_OPTIONAL,
-                        'Backup path',
+                        'DB backup path',
                         $this->configuration->localEnvironmentDbImport()
                     ),
                     new InputOption(
                         'time_out',
                         't',
                         InputOption::VALUE_OPTIONAL,
-                        'Time out',
+                        'Time out for task, default to ' . $this->configuration->timeOut(),
                         $this->configuration->timeOut()
                     ),
                 )
@@ -67,7 +68,7 @@ To override config in dropcat.yml, using options:
                 throw new Exception('path to db is needed');
             }
         } catch (Exception $e) {
-            $output->writeln( 'error:' . $e->getMessage());
+            $output->writeln('error:' . $e->getMessage());
             return 1;
         }
 
@@ -78,13 +79,13 @@ To override config in dropcat.yml, using options:
 
         if (file_exists($path_to_db)) {
             if ($output->isVerbose()) {
-                $output->writeln( "<comment>Db exists at $path_to_db</comment>");
+                $output->writeln("<comment>Db exists at $path_to_db</comment>");
             }
             $file_type = pathinfo($path_to_db);
             switch ($file_type['extension']) {
                 case "gz":
                     if ($output->isVerbose()) {
-                        $output->writeln( "<comment>Filetype is gz</comment>");
+                        $output->writeln("<comment>Filetype is gz</comment>");
                     }
                     // Using bash redirection, needs fromShellCommandLine
                     $process = Process::fromShellCommandline(

@@ -12,7 +12,8 @@ class SelfUpdaterCommand extends DropcatCommand
     protected function configure()
     {
         $this
-            ->setName('self-update')
+            ->setName('self:update')
+            ->setAliases(["self-update"])
             ->setDescription('Updates dropcat.phar to the latest version if needed');
     }
 

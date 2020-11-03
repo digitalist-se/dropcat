@@ -32,7 +32,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 <info>dropcat rollback</info>
 To override config in dropcat.yml, using options:
 <info>dropcat rollback --tracker-file=/my/dir/file.yml</info>';
-        $this->setName("rollback")
+        $this->setName("site:rollback")
+            ->setAliases(["rollback"])
           ->setDescription("Rollback a site")
         ->setDefinition(
             [

@@ -20,7 +20,8 @@ To run with default options (using config from dropcat.yml in the currrent dir):
 To override config in dropcat.yml, using options:
 <info>dropcat site-install -d mysite</info>';
 
-        $this->setName("site-install")
+        $this->setName("site:install")
+            ->setAliases(["site-install"])
           ->setDescription("Site install")
         ->setDefinition(
             array(
