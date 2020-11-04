@@ -34,7 +34,8 @@
     "guzzlehttp/guzzle": "^6.5",
     "composer/xdebug-handler": "^1.4",
     "webflo/drupal-finder": "^1.2",
-    "symfony/finder": "^5.0"
+    "symfony/finder": "^5.0",
+    "ext-json": "*"
   },
   "bin": [
     "app/dropcat"

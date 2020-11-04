@@ -7,21 +7,17 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
-class CacheRebuildCommand extends DropcatCommand {
+class LocaleUpdateCommand extends DropcatCommand {
+
+
+    protected static $defaultName = 'locale:update';
 
     protected function configure() {
-        $HelpText = 'The <info>%command.name%</info> re-creates cache on a drupal site.
-<comment>Samples:</comment>
-To run with default options (using config from dropcat.yml in the currrent dir):
-<info>dropcat cache-recreate</info>
-To override config in dropcat.yml, using options:
-<info>dropcat cache-rebuild -d mysite</info>';
+        $HelpText = 'The <info>%command.name%</info> updates locales.';
 
-        $this->setName("cache:rebuild")
-          ->setDescription("rebuilds the cache")
-          ->setAliases(['cache-recreate', 'cache:recreate', 'cr'])
+        $this->setName("locale:update")
+          ->setDescription("update locales")
           ->setDefinition(
             [
               new InputOption(
@@ -42,13 +38,24 @@ To override config in dropcat.yml, using options:
             $out = 'Using drush alias: @' . $drush_alias . "\n";
             $output->writeln("<comment>$out</comment>");
         }
-        $cr = ['drush', "@$drush_alias", 'cache:rebuild'];
-        $process = new Process($cr);
+        $this->localeImport($drush_alias, $input, $output);
+        $output->writeln('<info>locale:update finished</info>');
+        return 0;
+    }
+
+    public function localeImport($drush_alias, $input, $output) {
+        $cmd = ['drush', "@$drush_alias", 'locale:update'];
+        $process = new Process($cmd);
         if ($output->isVerbose()) {
             $out = 'Running command: ' . $process->getCommandLine() . "\n";
             $output->writeln("<comment>$out</comment>");
         }
-        $process->run();
+        $process->mustRun();
+
+        while($process->isRunning()) {
+            var_dump($process->getIncrementalOutput());
+            var_dump($process->getOutput());
+        }
         // Executes after the command finishes.
         if (!$process->isSuccessful()) {
             $msg = $process->getErrorOutput();
@@ -56,12 +63,7 @@ To override config in dropcat.yml, using options:
                 $msg = $process->getOutput();
             }
             $output->writeln("<error>Error: $msg</error>");
-
-            return $process->getExitCode();
         }
-
-        $output->writeln('<info>cache:rebuild finished</info>');
-
-        return 0;
+        return $process->getExitCode();
     }
 }

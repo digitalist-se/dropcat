@@ -85,14 +85,15 @@ To override config in dropcat.yml, using options:
         $output->writeln('<info>' . $this->start . ' site install started</info>');
 
         $cmd = [
-          'drush',
-          "@$drush_alias",
-          'si',
-          "$profile",
-          "--account-name=$admin_user",
-          "--account-pass=$admin_pass",
-          '-y',
-          "$install_options"
+              'drush',
+              "@$drush_alias",
+              'si',
+              "$profile",
+              "--account-name=$admin_user",
+              "--account-pass=$admin_pass",
+              '-y',
+              "$install_options",
+              '-v'
         ];
         $process = new Process($cmd);
         $process->setTimeout($timeout);

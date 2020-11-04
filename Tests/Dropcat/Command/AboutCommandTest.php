@@ -32,6 +32,7 @@ class AboutCommandTest extends TestCase
         $output = $tester->getDisplay();
         $this->assertIsString($output);
         $this->assertStringContainsString('digitalist', $output);
+        $this->assertStringNotContainsString('microsoft', $output);
     }
 
     public function  testProcess() {
@@ -45,5 +46,6 @@ class AboutCommandTest extends TestCase
         $output = $process->getOutput();
         $this->assertIsString($output);
         $this->assertStringContainsString('digitalist', $output);
+        $this->assertStringNotContainsString('microsoft', $output);
     }
 }

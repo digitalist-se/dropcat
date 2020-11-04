@@ -183,44 +183,6 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                 }
                 if (isset($siteProperty['drush']['alias'])) {
                     $alias = $siteProperty['drush']['alias'];
-
-                    // Backup
-                    // create dir if it does not exist
-                    /*
-
-                    $backup_dir = $this->configuration->siteEnvironmentBackupPath() .
-                    '/' . $this->configuration->localEnvironmentAppName() . '/' .
-                    $alias;
-
-                    $process = new Process("mkdir -p $backup_dir");
-                    $process->setTimeout(9999);
-                    $process->run();
-                    // Executes after the command finishes.
-                    if (!$process->isSuccessful()) {
-                    $output->writeln("<info>$this->error could not create backup dir.</info>");
-                    throw new ProcessFailedException($process);
-                    }
-                    if ($output->isVerbose()) {
-                    echo $process->getOutput();
-                    }
-
-                    $server_time = date("Ymd_His");
-                    $process = new Process("drush @$alias sql-dump -y > $backup_dir/$alias-$server_time.sql");
-                    $process->setTimeout(9999);
-                    $process->run();
-                    // Executes after the command finishes.
-                    if (!$process->isSuccessful()) {
-                    $output->writeln("<info>$this->error could not update db for $site</info>");
-                    throw new ProcessFailedException($process);
-                    }
-                    if ($output->isVerbose()) {
-                    echo $process->getOutput();
-                    }
-
-                    $output->writeln("<info>$this->mark update db done for $alias</info>");
-
-                     */
-                    // end backup.
                     if ($no_db_update == false) {
                         if ($version == '8') {
                             // First rebuild cahce.

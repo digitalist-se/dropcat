@@ -91,7 +91,8 @@ class SecurityDrupalCommand extends DropcatCommand
             if ($version_drupal == '7') {
                 // @todo: we need to scan core files if they are commited and
                 // not using a make file
-                $find_d7_command = 'find . -maxdepth 1 -type f \( -iname \*.make -o -iname \*.make \)| xargs grep "\[\drupal]\[version"';
+                $find_d7_command = 'find . -maxdepth 1 -type f \( -iname \*.make -o -iname \*.make \)|' .
+                    ' xargs grep "\[\drupal]\[version"';
                 $run_process = Process::fromShellCommandline($find_d7_command);
                 $run_process->run();
                 $get_output = $run_process->enableOutput();
@@ -103,7 +104,6 @@ class SecurityDrupalCommand extends DropcatCommand
         } else {
             $this->getVersion($version, $api, $be_evil, $output);
         }
-
         return 0;
     }
 

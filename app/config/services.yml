@@ -213,3 +213,9 @@ services:
     dropcat.services.database_service:
       class: Dropcat\Services\DatabaseService
       arguments: ['@symfony.console_output']
+    dropcat.command.locale:update:
+      class: Dropcat\Command\LocaleUpdateCommand
+      arguments: ['@DropcatContainer','@dropcat.configuration']
+      lazy: true
+      tags:
+        - {name: console.command, command: locale:update}
