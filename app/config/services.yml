@@ -7,6 +7,10 @@ services:
     symfony.console_output:
       class: Symfony\Component\Console\Output\ConsoleOutput
 
+    _defaults:
+      autowire: true      # Automatically injects dependencies in your services.
+      autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
     dropcat.configuration:
       class: Dropcat\Services\Configuration
       factory: ['Dropcat\Services\DropcatConfigurationFactory', createConfigurationService]
@@ -17,7 +21,7 @@ services:
       tags:
         - {name: console.command, command: about}
 
-    dropcat.command.tar:
+    dropcat.command.site:tar:
       class: Dropcat\Command\TarCommand
       arguments: ['@DropcatContainer','@dropcat.configuration']
       lazy: true
