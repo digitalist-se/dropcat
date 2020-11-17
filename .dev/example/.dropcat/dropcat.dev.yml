@@ -5,7 +5,7 @@ local:
     tmp_path: /tmp
     build_id: 1
     separator: _
-    db_import: /mydb/backup/db.sql
+    db_import: /backup/Ploy/db.sql.gz
     tar_name: NULL
     tar_dir: /tmp/
     drush_folder: NULL

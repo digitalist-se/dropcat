@@ -101,14 +101,14 @@ To override config in dropcat.yml, using options:
                     $output->writeln("<comment>Filetype is sql</comment>");
                     break;
                 default: // Handle no file extension
-                    $output->writeln("only gzip (.gz) & .sql is supported for now");
+                    $output->writeln("only gzip (.gz) & .sql is supported.");
                     return 1;
             }
         } else {
             $output->writeln("Db does not exist at $path_to_db");
             return 1;
         }
-        $sqlDropProcess = new Process(['drush', '@$drush_alias', 'sql-drop', '-y']);
+        $sqlDropProcess = new Process(['drush', "@$drush_alias", 'sql-drop', '-y']);
         $sqlDropProcess->setTimeout($timeout);
         $sqlDropProcess->mustRun();
         if ($output->isVerbose()) {
