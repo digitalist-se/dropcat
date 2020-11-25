@@ -50,8 +50,8 @@ class VarnishPurgeCommand extends DropcatCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
 
-        # we neeed to handle errors...
-        # https://stackoverflow.com/questions/40096022/how-to-handle-fsockopen-error-in-php
+        $output->writeln('<info>' . $this->start . ' varnish:purge started</info>');
+
         $varnish_port = $input->getOption('varnish-port');
         $varnish_ip = $input->getOption('varnish-ip');
         $url = $input->getOption('url');
@@ -80,27 +80,31 @@ class VarnishPurgeCommand extends DropcatCommand
             $cmd .= "Connection: Close\r\n";
             $cmd .= "\r\n";
 
-            // Send the request
-            fwrite($varnish_sock, $cmd);
+            if ($varnish_sock) {
+                // Send the request
+                fwrite($varnish_sock, $cmd);
 
-            $response = "";
-            while (!feof($varnish_sock)) {
-                $response .= fgets($varnish_sock, 128);
-            }
-            if ($output->isVerbose()) {
-                print $response;
-            }
+                $response = "";
+                while (!feof($varnish_sock)) {
+                    $response .= fgets($varnish_sock, 128);
+                }
+                $output->writeln('<comment>' . $response . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
 
-            // Close the socket
-            fclose($varnish_sock);
+                // Close the socket
+                fclose($varnish_sock);
+            } else {
+                throw new \RuntimeException("Could not purge varnish.", 1);
+            }
         } else {
             throw new \RuntimeException(
                 'No configuration related with varnish deploy environment',
-                111
+                1
             );
         }
 
-        return 0;
+        $output->writeln('<info>' . $this->heart . ' varnish:purge finished</info>');
+
+        return DropcatCommand::SUCCESS;
     }
 }
 
