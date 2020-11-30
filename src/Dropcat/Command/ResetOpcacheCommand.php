@@ -174,9 +174,9 @@ class ResetOpcacheCommand extends DropcatCommand
 
         // First call is to empty the opcache, second call is to warm up the opcache.
         $requestUrls = ["$url/$random_file_name", $url];
-        foreach ($requestUrls as $url) {
+        foreach ($requestUrls as $delta => $requestUrl) {
             if (isset($auth_pass) && isset($auth_user)) {
-                $requestUrls[$url] = str_replace('://', "://$auth_user:$auth_pass@", $url);
+                $requestUrls[$delta] = str_replace('://', "://$auth_user:$auth_pass@", $requestUrl);
             }
         }
 
