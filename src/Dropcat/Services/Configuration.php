@@ -373,11 +373,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
 
     public function remoteEnvironmentRun()
     {
-        if (isset($this->configuration['remote']['environment']['run'])) {
-            return $this->configuration['remote']['environment']['run'];
-        } else {
-            return null;
-        }
+        return $this->configuration['remote']['environment']['run'] ?? null;
     }
 
     /**
@@ -386,7 +382,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     public function siteEnvironmentDrushAlias()
     {
         if (isset($this->configuration['site']['environment']['drush_alias'])) {
-            return $this->configuration['site']['environment']['drush_alias'];
+            return $this->configuration['site']['environment']['name'] . '.' .
+                $this->configuration['site']['environment']['drush_alias'];
         } else {
             return null;
         }
@@ -397,11 +394,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
      */
     public function siteEnvironmentDrushInstallOptions()
     {
-        if (isset($this->configuration['site']['environment']['drush_install_options'])) {
-            return $this->configuration['site']['environment']['drush_install_options'];
-        } else {
-            return null;
-        }
+        return $this->configuration['site']['environment']['drush_install_options'] ?? null;
     }
 
 

@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ResetLoginCommand extends DropcatCommand
 {
@@ -23,7 +22,7 @@ To override config in dropcat.yml, using options:
         $this->setName("reset-login")
             ->setDescription("Reset login")
             ->setDefinition(
-                array(
+                [
                     new InputOption(
                         'drush_alias',
                         'd',
@@ -31,7 +30,7 @@ To override config in dropcat.yml, using options:
                         'Drush alias',
                         $this->configuration->siteEnvironmentDrushAlias()
                     ),
-                )
+                ]
             )
             ->setHelp($HelpText);
     }
@@ -42,15 +41,15 @@ To override config in dropcat.yml, using options:
 
         $output->writeln("<info>$this->start reset-login started</info>");
 
-        if ($output->isVerbose()) {
-            $output->writeln("<info>$this->mark using drush alias: $drush_alias</info>");
-        }
-        $process = new Process(['drush', '@$drush_alias', 'uli']);
+        $output->writeln("<info>$this->mark using drush alias: $drush_alias</info>", OutputInterface::VERBOSITY_VERBOSE);
+
+        $process = new Process(['drush', "@$drush_alias", 'uli']);
         $process->mustRun();
+
         $output->writeln('<info>' . $process->getOutput() . '</info>');
 
         $output->writeln("<info>$this->heart reset-login finished</info>");
 
-        return 0;
+        return self::SUCCESS;
     }
 }
