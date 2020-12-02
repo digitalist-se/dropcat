@@ -13,6 +13,7 @@ services:
       - jenkins-backup:/backup
       - ../:/opt/dropcat # Mount the repo for faster local testing in jenkins.
       - ../../afp-global:/opt/afp-global # Mount the repo for faster local testing in jenkins.
+      - ../../kulturhusetstadsteatern:/opt/kulturhusetstadsteatern # Mount the repo for faster local testing in jenkins.
       - type: bind
         source: ./keys/id_rsa
         target: /var/id_rsa

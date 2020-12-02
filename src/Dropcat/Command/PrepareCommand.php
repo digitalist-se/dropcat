@@ -174,13 +174,6 @@ To override config in dropcat.yml, using options:
                         $this->configuration->trackerFile()
                     ),
                     new InputOption(
-                        'create-site',
-                        null,
-                        InputOption::VALUE_OPTIONAL,
-                        'Create site',
-                        $this->configuration->createSite()
-                    ),
-                    new InputOption(
                         'sync-folder',
                         null,
                         InputOption::VALUE_OPTIONAL,
@@ -336,7 +329,6 @@ To override config in dropcat.yml, using options:
         $mysql_password = $input->getOption('mysql-password');
         $timeout = $input->getOption('timeout');
         $tracker_file = $input->getOption('tracker-file');
-        $create_site = $input->getOption('create-site');
         $sync_folder = $input->getOption('sync-folder');
         $config_split_folder = $input->getOption('config-split-folder');
         $profile = $input->getOption('profile');
@@ -359,6 +351,7 @@ To override config in dropcat.yml, using options:
             '-e',
         ], getenv('DROPCAT_ENV') ?: 'dev');
 
+        $output->writeln('<info>Drush alias default:' . $drush_alias . '</info>');
 
         $output->writeln('<info>' . $this->start . ' prepare started</info>');
         $verbose = false;
@@ -424,378 +417,123 @@ To override config in dropcat.yml, using options:
         ];
 
         // Write the default tracker.
-        if (isset($create_site)) {
-            $multi = true;
-        } else {
-            $multi = false;
-        }
+        $multi = false;
         $write = new Tracker($verbose);
         $write->addDefault($default_tracker_conf, $app_name, $tracker_dir, $multi, $env);
 
-        // Use the $create_site variable for setting up.
-        if (isset($create_site)) {
-            if ($tracker_file == null) {
-                $tracker_file = $tracker_dir . '/default/' . $app_name . '-' . $env . '.yml';
-            }
+        // Normal setup for a site.
 
-            $tracker = new Tracker($verbose);
-            $sites = $tracker->read($tracker_file);
+        if (!isset($tracker_dir)) {
+            throw new Exception('you need a tracker dir defined');
+        }
 
-            foreach ($sites as $site => $siteProperty) {
-                // getting the default user - same as the root user.
-                if ($site === 'default') {
-                    $mysql_host = $siteProperty['db']['host'];
-                    $mysql_root_user = $siteProperty['db']['user'];
-                    $mysql_root_pass = $siteProperty['db']['pass'];
-                }
-
-                if (isset($create_site)) {
-                    $new_site_name = Name::site($create_site);
-                    // check if a site already exists with that name.
-                    if ($site === $new_site_name) {
-                        throw new Exception("site $new_site_name already exists");
-                    }
-                }
-            }
-
-            $fixed_name = mb_strimwidth($new_site_name, 0, 64);
-            $mysql_user = mb_strimwidth($new_site_name, 0, 32);
-            $new_site_name = mb_strimwidth($new_site_name, 0, 32);
-            $site_domain = $create_site;
-            $drush_alias = $fixed_name;
-            $mysql_db = $fixed_name;
-            $mysql_password = uniqid();
-
-            $mysql_conf = [
-                'mysql-root-user' => $mysql_root_user,
-                'mysql-root-pass' => $mysql_root_pass,
-                'mysql-host' => $mysql_host,
-                'mysql-user' => $mysql_user,
-                'mysql-password' => $mysql_password,
-                'timeout' => $timeout,
-            ];
-
-            $db = new Db($verbose);
-            $db->createUser($mysql_conf);
-
-            $new_db_conf = [
-                'mysql-host' => $mysql_host,
-                'mysql-user' => $mysql_user,
-                'mysql-password' => $mysql_password,
-                'mysql-db' => $mysql_db,
-                'mysql-port' => $mysql_port,
-                'timeout' => $timeout,
-                'mysql-root-user' => $mysql_root_user,
-                'mysql-root-pass' => $mysql_root_pass,
-            ];
-            // Create database.
-            $db = new Db($verbose);
-            $db->createDb($new_db_conf);
-
-            $site_name = $drush_alias;
-            $url = 'http://' . $create_site;
-            $site_alias = "$web_root/$alias";
-            $uuid = UUID::v4();
-            $hash = hash('ripemd320', $uuid);
-            $url_safe_hash = str_replace(
-                ['+', '/', '='],
-                ['-', '_', ''],
-                $hash
-            );
-
-            $site = [
-                $site_name => [
-                    'db' => [
-                        'dump' => null,
-                        'name' => $mysql_db,
-                        'user' => $mysql_user,
-                        'pass' => $mysql_password,
-                        'host' => $mysql_host,
-                    ],
-                    'web' => [
-                        'host' => $server,
-                        'hash' => $url_safe_hash,
-                        'user' => $user,
-                        'port' => $ssh_port,
-                        'id-file' => $identity_file,
-                        'pass' => $ssh_key_password,
-                        'alias-path' => $site_alias,
-                        'site-domain' => $site_domain,
-                        'sync-folder' => $sync_folder,
-                        'config-split-folder' => $config_split_folder,
-                    ],
-                    'drush' => [
-                        'alias' => $drush_alias,
-                    ]
-                ],
-            ];
-
-            if (isset($server_alias)) {
-                $site["$site_name"]['web']['server-alias'] = $server_alias;
-            }
-
-            $tracker_conf = [
-                'tracker-file' => $tracker_file,
-                'new-site' => $site,
-                'tracker-dir' => $tracker_dir,
-                'app-name' => $app_name,
-            ];
-
-            $write = new Tracker($verbose);
-            $write->addMulti($tracker_conf);
-
-            if ($keep_drush_alias === false) {
-                // Create drush alias, if it is drupal.
-                $check = new CheckDrupal();
-                if ($check->isDrupal()) {
-                    $drush_alias_conf = [
-                        'env' => $env,
-                        'drush-alias-name' => $drush_alias,
-                        'site-name' => $site_name,
-                        'server' => $server,
-                        'user' => $user,
-                        'web-root' => $web_root,
-                        'alias' => $alias,
-                        'url' => $url,
-                        'ssh-port' => $ssh_port,
-                        'drush-memory-limit' => $drush_memory_limit,
-                        'location' => $location,
-                        'identityFile' => $identityFile,
-                    ];
-                    $write = new Write();
-                    $write->drushAlias($drush_alias_conf, $verbose);
-                }
-            }
-            $sites_php_conf = [
-                'app-name' => $app_name,
-                'tracker-file' => $tracker_file,
-            ];
-
-            $sitesphp = new Write();
-            $sitesphp->sitesPhp($sites_php_conf);
-
-            //echo $tracker_file;
-
-            $conf = [
-                'tracker-file' => $tracker_file,
-                'site' => $site_name,
-                'app-name' => $app_name,
-            ];
-            $localSettings = new Write();
-            $localSettings->localSettingsPhpMulti($conf);
-
-
-            $target = $site_alias . '/web/sites/' . $site_domain;
-
-            $remote_config = [
-                'server' => $server,
-                'user' => $user,
-                'port' => $ssh_port,
-                'key' => $identity_file,
-                'pass' => $ssh_key_password,
-                'timeout' => $timeout,
-                'target' => $target,
-            ];
-
-            $create = new Create();
-            $create->folder($remote_config);
-
-            if (isset($config_split_folder)) {
-                $remote_config['target'] = $site_alias . '/web/sites/' . $site_domain . '/sync';
-                $create = new Create();
-                $create->folder($remote_config);
-                $output->writeln('<info>' . $this->mark . ' config split folder created.</info>');
-            }
-
-            $from = "/tmp/$app_name.local.settings.php";
-            $to = "$target/settings.local.php";
-            $upload_settings_local = new Upload();
-            $upload_settings_local->place($remote_config, $from, $to, $verbose);
-
-
-            if (file_exists("/tmp/$app_name-sites.php")) {
-                $from = "/tmp/$app_name-sites.php";
-                $to = $site_alias . '/web/sites/sites.php';
-                $upload_sites_php = new Upload();
-                $upload_sites_php->place($remote_config, $from, $to, $verbose);
-            }
-
-            $from = realpath("settings/default.settings.php");
-            $to = "$target/settings.php";
-            $upload_settings_php = new Upload();
-            $upload_settings_php->place($remote_config, $from, $to, $verbose);
-
-            $from = realpath("settings/default.services.yml");
-            $to = "$target/services.yml";
-            $upload_settings_php = new Upload();
-            $upload_settings_php->place($remote_config, $from, $to, $verbose);
-
-            $output->writeln('<info>' . $this->mark . ' needed files in place.</info>');
-
-            // add option for this, now hardcoded
-            $target = $vhost_target;
-            $extra = '';
-            $port = '80';
-            $bash_command = $vhost_bash_command;
-
-            $vhost_config = [
-                'target' => $target,
-                'file-name' => $new_site_name,
-                'document-root' => "$site_alias/web",
-                'port' => $port,
-                'server-name' => $site_domain,
-                'extra' => $extra,
-                'bash-command' => $bash_command,
-                'server' => $server,
-                'user' => $user,
-                'ssh-port' => $ssh_port,
-                'ssh-key-password' => $ssh_key_password,
-                'identity-file' => $identity_file,
-            ];
-            if (isset($server_alias)) {
-                $vhost_config['server-alias'] = $server_alias;
-            }
-
-            // Create a vhost file.
-            $vhost = new Vhost();
-            $vhost->create($vhost_config);
-
-            // If it is drupal, install the site.
+        // write drush alias.
+        if ($keep_drush_alias === false) {
             $check = new CheckDrupal();
             if ($check->isDrupal()) {
-                $drush_config = [
-                    'drush-alias' => $drush_alias,
-                    'profile' => $profile,
+                $drush_alias_conf = [
+                    'env' => $env,
+                    'drush-alias-name' => $drush_alias, // Not used in creation
                     'site-name' => $site_name,
-                    'subdir' => $site_domain,
-                    'no-email' => $no_email,
+                    'server' => $server,
+                    'user' => $user,
+                    'web-root' => $web_root,
+                    'alias' => $alias,
+                    'url' => $url,
+                    'ssh-port' => $ssh_port,
+                    'drush-memory-limit' => $drush_memory_limit,
+                    'location' => $location,
+                    'identityFile' => $identityFile,
                 ];
-
-                $install = new Install();
-                $install->drupal($drush_config, $lang, $verbose);
-
-                $import = new Config();
-                if ($no_partial == false) {
-                    $import->importPartial($drush_config, $verbose);
-                }
-
-                if (isset($config_split_settings)) {
-                    $export = new Config();
-                    $export->configSplitExport($drush_config, $config_split_settings, $verbose);
-                }
-
-                $import = new Config();
-                $import->import($drush_config, $verbose);
+                $write = new Write();
+                $write->drushAlias($drush_alias_conf, $verbose);
             }
-        } // Create site ends.
-        // Normal setup for a site.
-        else {
-            if (!isset($tracker_dir)) {
-                throw new Exception('you need a tracker dir defined');
-            }
-
-            // write drush alias.
-            if ($keep_drush_alias === false) {
-                $check = new CheckDrupal();
-                if ($check->isDrupal()) {
-                    $drush_alias_conf = [
-                        'env' => $env,
-                        'drush-alias-name' => $drush_alias,
-                        'site-name' => $site_name,
-                        'server' => $server,
-                        'user' => $user,
-                        'web-root' => $web_root,
-                        'alias' => $alias,
-                        'url' => $url,
-                        'ssh-port' => $ssh_port,
-                        'drush-memory-limit' => $drush_memory_limit,
-                        'location' => $location,
-                        'identityFile' => $identityFile,
-                    ];
-                    $write = new Write();
-                    $write->drushAlias($drush_alias_conf, $verbose);
-                }
-            }
-
-            // Create database if it does not exist.
-            $new_db_conf = [
-                'drush_alias' => $drush_alias,
-                'server' => $server,
-                'user' => $user,
-                'identityFile' => $identityFile,
-                'mysql-host' => $mysql_host,
-                'mysql-user' => $mysql_user,
-                'mysql-password' => getenv('MYSQL_PASSWORD'),
-                'mysql-db' => $mysql_db,
-                'mysql-port' => $mysql_port,
-                'timeout' => $timeout,
-                'mysql-root-user' => getenv('MYSQL_ROOT_USER'),
-                'mysql-root-pass' => getenv('MYSQL_ROOT_PASSWORD'),
-            ];
-            if (isset($db_dump_path)) {
-                $new_db_conf['db-dump-path'] = $db_dump_path;
-            }
-
-            $this->databaseService->createDb($drush_alias, $new_db_conf);
-
-            // Write rollback tracker.
-
-            $build_tracker_conf = $default_tracker_conf;
-
-            $build_id = getenv('BUILD_ID');
-            if (!isset($build_id)) {
-                $build_id = $server_time;
-            }
-
-            $build_tracker_dir = "$tracker_dir" . '/' . "$app_name" . '/';
-            $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$build_id.yml";
-
-            $res = $this->_makeDirectory($build_tracker_dir);
-            if ($res['exitCode'] === 0) {
-                $output->writeln(
-                    "<comment>Created  tracker dir at $build_tracker_dir</comment>",
-                    OutputInterface::VERBOSITY_VERBOSE
-                );
-            } else {
-                throw new Exception("Could not create tracker dir at $build_tracker_dir", 1);
-            }
-
-            $web_server_conf = [
-                'server' => $server,
-                'user' => $user,
-                'port' => $ssh_port,
-                'pass' => $ssh_key_password,
-                'key' => $identity_file,
-                'alias' => $alias,
-                'web-root' => $web_root,
-            ];
-            $get_site_path = new RemotePath($verbose);
-            $real_path = $get_site_path->siteRealPath($web_server_conf);
-
-            if (isset($real_path)) {
-                $build_tracker_conf['sites']['default']['web']['site-path'] = $real_path;
-            }
-            $build_tracker_conf['created'] = $server_time;
-
-            if (isset($build_id)) {
-                $build_tracker_conf['build-id'] = $build_id;
-            }
-            $build_tracker_conf['db']['db-dump-path'] = $db_dump_path;
-
-            $build_tracker = new Tracker($verbose);
-            $build_tracker->rollback($build_tracker_conf, $build_tracker_file_name);
-            $output->writeln('<info>' . $this->mark . ' created a rollback tracker file.</info>');
-
-            $clean = new Cleanup();
-            $clean->deleteOldRollbackTrackers($build_tracker_dir);
-            $output->writeln('<info>' . $this->mark . ' deleted old rollback tracker files.</info>');
-
-            $db_dump_dir = $backups_dir . "/";
-
-            $clean = new Cleanup();
-            $clean->deleteAutomaticDbBackups($db_dump_dir);
-            $output->writeln('<info>' . $this->mark . ' deleted old automatic db backups.</info>');
         }
+
+        // Create database if it does not exist.
+        $new_db_conf = [
+            'drush_alias' => $drush_alias,
+            'server' => $server,
+            'user' => $user,
+            'identityFile' => $identityFile,
+            'ssh-port' => $ssh_port,
+            'mysql-host' => $mysql_host,
+            'mysql-user' => $mysql_user,
+            'mysql-password' => getenv('MYSQL_PASSWORD'),
+            'mysql-db' => $mysql_db,
+            'mysql-port' => $mysql_port,
+            'timeout' => $timeout,
+            'mysql-root-user' => getenv('MYSQL_ROOT_USER'),
+            'mysql-root-pass' => getenv('MYSQL_ROOT_PASSWORD'),
+        ];
+        if (isset($db_dump_path)) {
+            $new_db_conf['db-dump-path'] = $db_dump_path;
+        }
+
+        // TODO: this doesn't work when no Drupal files are uploaded yet, because drush fails
+        // TODO: Could fix by using mysql directly over ssh
+        //$this->databaseService->createDb($drush_alias, $new_db_conf);
+        $this->databaseService->createUserOverSsh($new_db_conf, $verbose);
+        $this->databaseService->createDbOverSsh($new_db_conf);
+
+        // Write rollback tracker.
+
+        $build_tracker_conf = $default_tracker_conf;
+
+        $build_id = getenv('BUILD_ID');
+        if (!isset($build_id)) {
+            $build_id = $server_time;
+        }
+
+        $build_tracker_dir = "$tracker_dir" . '/' . "$app_name" . '/';
+        $build_tracker_file_name = $build_tracker_dir . $app_name . '-' . $env . '_' . "$build_id.yml";
+
+        $res = $this->_makeDirectory($build_tracker_dir);
+        if ($res['exitCode'] === 0) {
+            $output->writeln(
+                "<comment>Created  tracker dir at $build_tracker_dir</comment>",
+                OutputInterface::VERBOSITY_VERBOSE
+            );
+        } else {
+            throw new Exception("Could not create tracker dir at $build_tracker_dir", 1);
+        }
+
+        $web_server_conf = [
+            'server' => $server,
+            'user' => $user,
+            'port' => $ssh_port,
+            'pass' => $ssh_key_password,
+            'key' => $identity_file,
+            'alias' => $alias,
+            'web-root' => $web_root,
+        ];
+        $get_site_path = new RemotePath($verbose);
+        $real_path = $get_site_path->siteRealPath($web_server_conf);
+
+        if (isset($real_path)) {
+            $build_tracker_conf['sites']['default']['web']['site-path'] = $real_path;
+        }
+        $build_tracker_conf['created'] = $server_time;
+
+        if (isset($build_id)) {
+            $build_tracker_conf['build-id'] = $build_id;
+        }
+        $build_tracker_conf['db']['db-dump-path'] = $db_dump_path;
+
+        $build_tracker = new Tracker($verbose);
+        $build_tracker->rollback($build_tracker_conf, $build_tracker_file_name);
+        $output->writeln('<info>' . $this->mark . ' created a rollback tracker file.</info>');
+
+        $clean = new Cleanup();
+        $clean->deleteOldRollbackTrackers($build_tracker_dir);
+        $output->writeln('<info>' . $this->mark . ' deleted old rollback tracker files.</info>');
+
+        $db_dump_dir = $backups_dir . "/";
+
+        $clean = new Cleanup();
+        $clean->deleteAutomaticDbBackups($db_dump_dir);
+        $output->writeln('<info>' . $this->mark . ' deleted old automatic db backups.</info>');
+
         $output->writeln('<info>' . $this->heart . ' prepare finished</info>');
 
         return 0;

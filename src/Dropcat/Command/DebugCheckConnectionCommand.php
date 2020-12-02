@@ -87,7 +87,7 @@ To run with default options (using config from dropcat.yml in the current dir):
                 print_r($auth);
             }
             if ($output->isVerbose()) {
-                $output->writeln("<info>user: $user pass: $ssh_key_password server: $server</info>");
+                $output->writeln("<info>user: $user pass: $ssh_key_password server: $server identityFile: $identity_file port: $ssh_port</info>");
             }
             if (!$login) {
                 throw new Exception('Login Failed using ' . $identity_file . ' and user ' . $user . ' at ' . $server

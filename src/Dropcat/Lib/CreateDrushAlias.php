@@ -109,7 +109,7 @@ class CreateDrushAlias
      */
     public function getValue()
     {
-        $options[$this->env] = [
+        $options[$this->drushAliasName] = [
           "options" => ['php-options' => $this->drushMemoryLimit],
           "host" => $this->server,
           "user" => $this->user,
@@ -119,11 +119,11 @@ class CreateDrushAlias
         ];
 
         if ($this->identityFile) {
-            $options[$this->env]['ssh']['options'] .= ' -i ' . $this->identityFile;
+            $options[$this->drushAliasName]['ssh']['options'] .= ' -i ' . $this->identityFile;
         }
 
         if ($this->drushScript) {
-            $options[$this->env]['paths'] = [
+            $options[$this->drushAliasName]['paths'] = [
               'drush-script' => $this->drushScript
             ];
         }

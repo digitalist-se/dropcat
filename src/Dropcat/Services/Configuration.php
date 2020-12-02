@@ -381,12 +381,14 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
      */
     public function siteEnvironmentDrushAlias()
     {
-        if (isset($this->configuration['site']['environment']['drush_alias'])) {
-            return $this->configuration['site']['environment']['name'] . '.' .
-                $this->configuration['site']['environment']['drush_alias'];
-        } else {
-            return null;
+        $name = $this->configuration['site']['environment']['name'] ?? null;
+        $drushAlias = $this->configuration['site']['environment']['drush_alias'] ?? null;
+
+        if ($drushAlias && $name) {
+            return $name . '.' . $drushAlias;
         }
+
+        return null;
     }
 
     /**

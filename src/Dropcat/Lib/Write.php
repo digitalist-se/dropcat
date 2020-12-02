@@ -73,6 +73,7 @@ class Write {
         $drushAlias->setDrushMemoryLimit($conf['drush-memory-limit']);
         $drushAlias->setLocation($conf['location']);
         $drushAlias->setIdentityFile($conf['identityFile']);
+        $drushAlias->setDrushAliasName($conf['drush-alias-name']);
 
         if (isset($conf['drush-script'])) {
             $drushAlias->setDrushScriptPath($conf['drush-script']);
@@ -100,10 +101,10 @@ class Write {
                 $aliases = Yaml::parseFile($filename);
 
                 // Just to inform about overwriting.
-                foreach ($aliases as $env => $options) {
-                    if ($env === $conf['env']) {
+                foreach ($aliases as $name => $options) {
+                    if ($name === $conf['drush-alias-name']) {
                         if ($verbose) {
-                            $msg = "<error>$env alias already exists! Overwriting.</error>";
+                            $msg = "<error>$name alias already exists! Overwriting.</error>";
                             $this->output->writeln($msg);
                         }
                     }
@@ -128,8 +129,8 @@ class Write {
             if ($verbose) {
                 $this->output->writeln("<info>Successfully written $filename</info>");
             }
-            $this->output->writeln("<info>$this->mark drush alias @" .
-              $conf['site-name'] . '.' . $conf['env'] . " created. Run <comment>drush sa</comment> to see available aliases.</info>");
+            $this->output->writeln("<info>$this->mark drush alias @" . $conf['drush-alias-name'] .
+                " created. Run <comment>drush sa</comment> to see available aliases.</info>");
 
             return 0;
         } catch (IOExceptionInterface $e) {

@@ -35,7 +35,8 @@
     "composer/xdebug-handler": "^1.4",
     "webflo/drupal-finder": "^1.2",
     "symfony/finder": "^5.0",
-    "ext-json": "*"
+    "ext-json": "*",
+    "ext-mysqli": "*"
   },
   "bin": [
     "app/dropcat"
