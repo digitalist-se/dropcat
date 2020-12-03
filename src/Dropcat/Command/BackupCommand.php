@@ -3,6 +3,8 @@
 namespace Dropcat\Command;
 
 use Dropcat\Lib\DropcatCommand;
+use phpseclib\Crypt\RSA;
+use phpseclib\Net\SSH2;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -10,7 +12,7 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
- * Backup a site db and files.
+ * Backup a site db and files over ssh.
  */
 class BackupCommand extends DropcatCommand {
 
@@ -147,6 +149,27 @@ class BackupCommand extends DropcatCommand {
           ->setHelp($HelpText);
     }
 
+    /**
+     * @param SSH2 $ssh
+     * @param string $cmd
+     * @param OutputInterface $output
+     * @return bool|string
+     * @throws \Exception
+     */
+    private function sshExec(SSH2 &$ssh, string $cmd, OutputInterface $output) {
+        $res = $ssh->exec($cmd);
+        $exitStatus = $ssh->getExitStatus();
+        if ($exitStatus !== 0) {
+            $err = $ssh->getStdError();
+            $output->writeln("<error>Error: $err</error>");
+            $output->writeln('<error>In: File: ' . __FILE__ . ' Function: '.__FUNCTION__ .
+                ' Line: ' . __LINE__ . "\n $err</error>");
+            throw new \Exception();
+        }
+
+        return $res;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output) {
         $app = $input->getOption('app-name');
         $mysql_host = $input->getOption('mysql-host');
@@ -167,33 +190,82 @@ class BackupCommand extends DropcatCommand {
         $alias = $input->getOption('alias');
         $timestamp = $this->configuration->timeStamp();
 
+        $verbose = false;
+        if ($output->isVerbose()) {
+            $verbose = true;
+        }
+
         if (!isset($backup_name)) {
             $backup_name = $timestamp;
         }
         $output->writeln("<info>$this->start backup started</info>");
+        // TODO: Change this to use db service and ssh
         if ($no_db_backup != TRUE) {
             $mkdir = ['mkdir', '-p', "$backup_path/$app"];
             $mysqldump = "mysqldump --port=$mysql_port -u $mysql_user " .
-              "-p$mysql_password -h $mysql_host $mysql_db > $backup_path/$app/$backup_name.sql";
+              "-p$mysql_password -h $mysql_host $mysql_db > /tmp/$backup_name.sql";
             $mkdirProcess = new Process($mkdir);
             $mkdirProcess->run();
             if ($mkdirProcess->isSuccessful()) {
-                // Because we're using shell redirection we need to use fromShellCommand.
-                $backupDb = Process::fromShellCommandline($mysqldump);
-                if ($output->isVerbose()) {
-                    $output->writeln("<comment>$this->cat Executing: {$backupDb->getCommandLine()}</comment>");
+                $ssh = new SSH2($server, $ssh_port, $timeout);
+                $key = new RSA();
+                $contents = file_get_contents($identityFile);
+                $key->loadKey($contents);
+                if (!$ssh->login($user, $key)) {
+                    $err = $ssh->getErrors();
+                    $output->writeln("<error>Error: could not ssh to $server.</error>");
+                    $output->writeln("<error>SSH error: $err</error>");
+                    throw new \Exception();
                 }
-                $backupDb->setTimeout($timeout);
+
+                // Take the db dump on the remote server.
+                $this->sshExec($ssh, $mysqldump, $output);
+                $check = $this->sshExec($ssh, "ls -lh /tmp/$backup_name.sql", $output);
+                $output->writeln("<comment>List backup: $check</comment>", OutputInterface::VERBOSITY_VERBOSE);
+                if (strpos($check, "$backup_name") !== FALSE) {
+                    $output->writeln("<comment>Backup was found on remote server.</comment>",
+                        OutputInterface::VERBOSITY_VERBOSE);
+                } else {
+                    throw new \Exception("Could not find backup on remote server.");
+                }
+
+                // Tar the dump.
+                $tarCmd = "tar -czvf /tmp/$backup_name.sql.tar /tmp/$backup_name.sql";
+                $this->sshExec($ssh, $tarCmd, $output);
+
+                // Rsync the database from the remote server.
+                $sshCommand = "ssh -p $ssh_port";
+                if (isset($sshCommand)) {
+                    $sshCommand .= " -i $identityFile";
+                }
+                if ($verbose) {
+                    $sshCommand .= ' -o LogLevel=VERBOSE';
+                    $rsyncOptions = '-vPaL';
+                }
+                else {
+                    $sshCommand .= ' -o LogLevel=ERROR';
+                    $rsyncOptions = '-qPaL';
+                }
+                $rsyncCommand = "rsync $rsyncOptions -e \"$sshCommand\" $user@$server:/tmp/$backup_name.sql.tar $backup_path/$app/$backup_name.sql.tar";
+                $rsyncProcess = Process::fromShellCommandline($rsyncCommand);
+                $rsyncProcess->setTimeout($timeout);
+                if ($output->isVerbose()) {
+                    $output->writeln("<comment>$this->cat Executing: {$rsyncProcess->getCommandLine()}</comment>");
+                }
                 try {
-                    $backupDb->mustRun();
-                    if ($output->isVerbose()) {
-                        $output->writeln("<comment>$this->cat Wrote backup to $backup_path/$app/$backup_name.sql</comment>");
+                    $rsyncProcess->mustRun();
+                    if ($verbose) {
+                        $output->writeln("<comment>$this->cat Backed up database to $backup_path/$app/$backup_name.sql</comment>");
+                        $out = $rsyncProcess->getOutput();
+                        $output->writeln("<comment>$this->cat $out</comment>");
                     }
                 } catch (ProcessFailedException $e) {
-                    $out = $backupDb->getErrorOutput();
+                    $out = $rsyncProcess->getErrorOutput();
                     $output->writeln("<error>$out</error>");
-                    return $backupDb->getExitCode();
+                    return $rsyncProcess->getExitCode();
                 }
+                // Remove backup from remote server. We have it locally now.
+                $this->sshExec($ssh, "rm -f /tmp/$backup_name.*", $output);
             }
             else {
                 $msg = $mkdirProcess->getErrorOutput();
@@ -211,7 +283,7 @@ class BackupCommand extends DropcatCommand {
                 if (isset($sshCommand)) {
                     $sshCommand .= " -i $identityFile";
                 }
-                if ($output->isVerbose()) {
+                if ($verbose) {
                     $sshCommand .= ' -o LogLevel=VERBOSE';
                     $rsyncOptions = '-vPaL';
                 }
@@ -227,7 +299,7 @@ class BackupCommand extends DropcatCommand {
                 }
                 try {
                     $rsyncProcess->mustRun();
-                    if ($output->isVerbose()) {
+                    if ($verbose) {
                         $output->writeln("<comment>$this->cat Backed up site to $backup_path/$app</comment>");
                         $out = $rsyncProcess->getOutput();
                         $output->writeln("<comment>$this->cat $out</comment>");
