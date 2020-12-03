@@ -199,7 +199,6 @@ class BackupCommand extends DropcatCommand {
             $backup_name = $timestamp;
         }
         $output->writeln("<info>$this->start backup started</info>");
-        // TODO: Change this to use db service and ssh
         if ($no_db_backup != TRUE) {
             $mkdir = ['mkdir', '-p', "$backup_path/$app"];
             $mysqldump = "mysqldump --port=$mysql_port -u $mysql_user " .
