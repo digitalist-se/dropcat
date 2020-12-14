@@ -4,17 +4,36 @@
 namespace Dropcat\Services;
 
 
+use Symfony\Component\Console\Helper\ProcessHelper;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 class NvmWrapperService
 {
-    protected $output;
+    protected OutputInterface $output;
+
+    protected string $nvmDir;
 
     public function __construct(OutputInterface $output)
     {
         $this->output = $output;
+    }
+
+    /**
+     * @return string
+     */
+    public function getNvmDir(): string
+    {
+        return $this->nvmDir;
+    }
+
+    /**
+     * @param string $nvmDir
+     */
+    public function setNvmDir(string $nvmDir): void
+    {
+        $this->nvmDir = $nvmDir;
     }
 
     /**
@@ -23,6 +42,11 @@ class NvmWrapperService
      * @return bool
      */
     public function install(string $nvmRcPath = '') : bool {
+        $nvmDir = $this->getNvmDir();
+        if (!isset($nvmDir)) {
+            $this->output->writeln("<error>Error: nvm directory was not set.</error>");
+            return false;
+        }
         if (!$this->isNvmRcFilePresent($nvmRcPath)) {
             $msg = 'Error: No nvmrc file found. Specify the node.nvmrc option if the .nvmrc file is not in the project\'s root, or add the file if it is missing.';
             $this->output->writeln("<error>$msg</error>");
@@ -32,17 +56,15 @@ class NvmWrapperService
             $this->output->writeln("<error>Error: Cannot proceed to nvm install.</error>");
             return false;
         }
-        $nvmInstall = Process::fromShellCommandline("bash -cl 'nvm install'");
+        $nvmInstall = Process::fromShellCommandline(". $nvmDir/nvm.sh && nvm install");
         $nvmInstall->setTimeout(120);
-        try {
-            $nvmInstall->mustRun();
-            $this->output->writeln("<comment>" . $nvmInstall->getOutput() . "</comment>");
-        } catch (ProcessFailedException $e) {
-            $this->output->writeln('<error>Error: ' . $nvmInstall->getErrorOutput() . '</error>');
-            return false;
-        }
+        $nvmInstall->run();
+        $exitCode = $nvmInstall->getExitCode();
+        $this->output->writeln("<comment>NVM install Exit code: $exitCode</comment>", OutputInterface::VERBOSITY_VERBOSE);
+        $this->output->writeln("<comment>NVM install StdOut: " . $nvmInstall->getOutput() . "</comment>", OutputInterface::VERBOSITY_VERBOSE);
+        $this->output->writeln('<error>NVM install ErrorOut: ' . $nvmInstall->getErrorOutput() . '</error>', OutputInterface::VERBOSITY_VERBOSE);
 
-        return true;
+        return $exitCode === 0;
     }
 
     /**
@@ -53,7 +75,12 @@ class NvmWrapperService
      */
     public function useAndRunCommand(string $command) : bool
     {
-        $process = Process::fromShellCommandline("bash -cl 'nvm use && $command'");
+        $nvmDir = $this->getNvmDir();
+        if (!isset($nvmDir)) {
+            $this->output->writeln("<error>Error: nvm directory was not set.</error>");
+            return false;
+        }
+        $process = Process::fromShellCommandline("bash -c '. $nvmDir/nvm.sh && nvm use && $command'");
         $process->setTimeout(360);
         try {
             $process->mustRun();
@@ -73,20 +100,28 @@ class NvmWrapperService
      */
     protected function isNvmInstalled() : bool
     {
-        # Check if nvm is loaded in the shell.
-        # Notice the -l login option, that will load the nvm.sh script if it is present.
-        # It is important that you have added the following to a file that is loaded on bash login (.bashrc for ex.):
-        #     export NVM_DIR="$HOME/.nvm"
-        #     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-        $checkNvm = Process::fromShellCommandline("bash -cl 'env | grep NVM'");
-        try {
-            $checkNvm->mustRun();
-        } catch (ProcessFailedException $e) {
-            $this->output->writeln("<error>NVM was not loaded in the environment.</error>");
+        $nvmDir = $this->getNvmDir();
+        $this->output->writeln("<error>$nvmDir</error>");
+        if (!isset($nvmDir)) {
+            $this->output->writeln("<error>Error: nvm directory was not set.</error>");
             return false;
         }
+        $checkNvm = Process::fromShellCommandline(". $nvmDir/nvm.sh && nvm --version");
+        $rawCmd = $checkNvm->getCommandLine();
+        $this->output->writeln('<error>' . $rawCmd . '</error>');
+        $checkNvm->run();
+        $errOut = $checkNvm->getErrorOutput();
+        $stdOut = $checkNvm->getOutput();
+        $exitCode = $checkNvm->getExitCode();
+        $this->output->writeln("<comment>NVM install check – Exit code: $exitCode</comment>", OutputInterface::VERBOSITY_VERBOSE);
+        if (!empty($errOut)) {
+            $this->output->writeln('<error>NVM install version check – Error: ' . $errOut . '</error>');
+        }
+        if (!empty($stdOut)) {
+            $this->output->writeln('<error>NVM install check – StdOut: ' . $stdOut . '</error>');
+        }
 
-        return true;
+        return $exitCode === 0;
     }
 
     /**

@@ -26,9 +26,16 @@ To override config in dropcat.yml, using options:
                     new InputOption(
                         'nvmrc',
                         'nc',
-                        InputOption::VALUE_OPTIONAL,
+                        InputOption::VALUE_REQUIRED,
                         'Path to .nvmrc file',
                         $this->configuration->nodeNvmRcFile()
+                    ),
+                    new InputOption(
+                        'nvm-path',
+                        'np',
+                        InputOption::VALUE_REQUIRED,
+                        'Path to nvm directory',
+                        $this->configuration->nodeNvmDirectory()
                     ),
                 ]
             )
@@ -39,13 +46,24 @@ To override config in dropcat.yml, using options:
     {
         $output->writeln('<info>' . $this->start . ' node:npm-install started</info>');
 
-        $this->nvmService->install($input->getOption('nvmrc'));
+        $nvmDir = $input->getOption('nvm-path');
+        $this->nvmService->setNvmDir($nvmDir);
+        $success = $this->nvmService->install($input->getOption('nvmrc'));
+        if (!$success) {
+            throw new \Exception("NVM install failed.");
+        }
 
-        $npmInstall = Process::fromShellCommandline("bash -cl 'npm install'");
+        $npmInstall = Process::fromShellCommandline(". $nvmDir/nvm.sh && npm install");
         $npmInstall->setTimeout(600);
-        $npmInstall->mustRun();
-        $output->writeln('<comment>' . $npmInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
-
+        $success = $npmInstall->mustRun();
+        $errOut = $npmInstall->getErrorOutput();
+        if (!empty($errOut)) {
+            $output->writeln('<error>NPM install ErrorOut: ' . $errOut . '</error>');
+        }
+        $output->writeln('<comment>NPM install StdOut: ' . $npmInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
+        if (!$success) {
+            throw new \Exception("NPM install failed.");
+        }
         $output->writeln('<info>' . $this->heart . ' node:npm-install finished</info>');
 
         return self::SUCCESS;
