@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/nginx/
-FROM registry.wklive.net:5000/dg/digi-jenkins:3.0.6
+FROM registry.wklive.net:5000/dg/digi-jenkins:3.0.11
 #COPY plugins.txt /plugins.txt
 #RUN cat /plugins.txt | /usr/local/bin/install-plugins.sh
 #USER root

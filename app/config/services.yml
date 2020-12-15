@@ -1,221 +1,227 @@
 services:
-    symfony.application:
-      class: Symfony\Component\Console\Application
-      arguments:
-        - 'dropcat'
-        - '2-beta'
-    symfony.console_output:
-      class: Symfony\Component\Console\Output\ConsoleOutput
+  symfony.application:
+    class: Symfony\Component\Console\Application
+    arguments:
+      - 'dropcat'
+      - '2-beta'
+  symfony.console_output:
+    class: Symfony\Component\Console\Output\ConsoleOutput
 
-    _defaults:
-      autowire: true      # Automatically injects dependencies in your services.
-      autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-    dropcat.configuration:
-      class: Dropcat\Services\Configuration
-      factory: ['Dropcat\Services\DropcatConfigurationFactory', createConfigurationService]
-    dropcat.command.about:
-      class: Dropcat\Command\AboutCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: about}
+  dropcat.configuration:
+    class: Dropcat\Services\Configuration
+    factory: [ 'Dropcat\Services\DropcatConfigurationFactory', createConfigurationService ]
+  dropcat.command.about:
+    class: Dropcat\Command\AboutCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: about }
 
-    dropcat.command.site:tar:
-      class: Dropcat\Command\TarCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: tar}
-    dropcat.command.backup:
-      class: Dropcat\Command\BackupCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: backup}
-    dropcat.command.config-import:
-      class: Dropcat\Command\ConfigImportCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: config-import}
-    dropcat.command.config-pull:
-      class: Dropcat\Command\ConfigPullCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: config-pull}
-    dropcat.command.db-import:
-      class: Dropcat\Command\DbImportCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: db-import}
-    dropcat.command.move:
-      class: Dropcat\Command\MoveCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: move}
-    dropcat.command.symlink:
-      class: Dropcat\Command\SymlinkCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: symlink}
-    dropcat.command.upload:
-      class: Dropcat\Command\UploadCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: upload}
-    dropcat.command.prepare:
-      class: Dropcat\Command\PrepareCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.database_service']
-      lazy: true
-      tags:
-        - {name: console.command, command: prepare}
-    dropcat.command.self-update:
-      class: Dropcat\Command\SelfUpdaterCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: self-update}
-    dropcat.command.self-rollback:
-      class: Dropcat\Command\SelfRollbackCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: self-rollback}
-    dropcat.command.site-install:
-      class: Dropcat\Command\SiteInstallCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: site-install}
-    dropcat.command.reset-login:
-      class: Dropcat\Command\ResetLoginCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.cache-rebuild:
-      class: Dropcat\Command\CacheRebuildCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: cache-rebuild}
-    dropcat.command.get:db-backup:
-      class: Dropcat\Command\GetDatabaseBackupCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.node:npm-install:
-      class: Dropcat\Command\RunNpmInstallCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.node:gulp:
-      class: Dropcat\Command\RunGulpCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
-      tags:
-        - {name: console.command}
+  dropcat.command.site:tar:
+    class: Dropcat\Command\TarCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: tar }
+  dropcat.command.backup:
+    class: Dropcat\Command\BackupCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: backup }
+  dropcat.command.config-import:
+    class: Dropcat\Command\ConfigImportCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: config-import }
+  dropcat.command.config-pull:
+    class: Dropcat\Command\ConfigPullCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: config-pull }
+  dropcat.command.db-import:
+    class: Dropcat\Command\DbImportCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: db-import }
+  dropcat.command.move:
+    class: Dropcat\Command\MoveCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: move }
+  dropcat.command.symlink:
+    class: Dropcat\Command\SymlinkCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: symlink }
+  dropcat.command.upload:
+    class: Dropcat\Command\UploadCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: upload }
+  dropcat.command.prepare:
+    class: Dropcat\Command\PrepareCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration', '@dropcat.services.database_service' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: prepare }
+  dropcat.command.self-update:
+    class: Dropcat\Command\SelfUpdaterCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: self-update }
+  dropcat.command.self-rollback:
+    class: Dropcat\Command\SelfRollbackCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: self-rollback }
+  dropcat.command.site-install:
+    class: Dropcat\Command\SiteInstallCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: site-install }
+  dropcat.command.reset-login:
+    class: Dropcat\Command\ResetLoginCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.cache-rebuild:
+    class: Dropcat\Command\CacheRebuildCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: cache-rebuild }
+  dropcat.command.get:db-backup:
+    class: Dropcat\Command\GetDatabaseBackupCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.node:npm-install:
+    class: Dropcat\Command\RunNpmInstallCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration', '@dropcat.services.n_wrapper_service' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.node:gulp:
+    class: Dropcat\Command\RunGulpCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration', '@dropcat.services.n_wrapper_service' ]
+    tags:
+      - { name: console.command }
 
-    dropcat.command.vhost:create:
-      class: Dropcat\Command\VhostCreateCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.varnish-purge:
-      class: Dropcat\Command\VarnishPurgeCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.tracker:
-      class: Dropcat\Command\TrackerCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.rollback:
-      class: Dropcat\Command\RollbackCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.multi:move:
-      class: Dropcat\Command\MultiMoveCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.update:
-      class: Dropcat\Command\UpdateCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.node:yarn-install:
-      class: Dropcat\Command\RunYarnInstallCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration', '@dropcat.services.nvm_wrapper_service']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.generate:drush-alias:
-      class: Dropcat\Command\GenerateDrushAliasCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.debug:check-connection:
-      class: Dropcat\Command\DebugCheckConnectionCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.multi:list:
-      class: Dropcat\Command\MultiListCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command}
-    dropcat.command.multi:clone:
-      class: Dropcat\Command\MultiCloneCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: multi:clone}
-    dropcat.command.sites:backup:
-      class: Dropcat\Command\SitesBackupCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: sites:backup}
-    dropcat.command.reset:opcache:
-      class: Dropcat\Command\ResetOpcacheCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: reset:opcache}
-    dropcat.command.security:drupal:
-      class: Dropcat\Command\SecurityDrupalCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: security:drupal}
-    dropcat.services.nvm_wrapper_service:
-      class: Dropcat\Services\NvmWrapperService
-      arguments: ['@symfony.console_output']
-    dropcat.services.database_service:
-      class: Dropcat\Services\DatabaseService
-      arguments: ['@symfony.console_output']
-    dropcat.command.locale:update:
-      class: Dropcat\Command\LocaleUpdateCommand
-      arguments: ['@DropcatContainer','@dropcat.configuration']
-      lazy: true
-      tags:
-        - {name: console.command, command: locale:update}
+  dropcat.command.vhost:create:
+    class: Dropcat\Command\VhostCreateCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.varnish-purge:
+    class: Dropcat\Command\VarnishPurgeCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.tracker:
+    class: Dropcat\Command\TrackerCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.rollback:
+    class: Dropcat\Command\RollbackCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.multi:move:
+    class: Dropcat\Command\MultiMoveCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.update:
+    class: Dropcat\Command\UpdateCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.node:yarn-install:
+    class: Dropcat\Command\RunYarnInstallCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration', '@dropcat.services.n_wrapper_service' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.node:run:
+    class: Dropcat\Command\NodeRunCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration',  '@dropcat.services.n_wrapper_service' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: node:run }
+  dropcat.command.generate:drush-alias:
+    class: Dropcat\Command\GenerateDrushAliasCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.debug:check-connection:
+    class: Dropcat\Command\DebugCheckConnectionCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.multi:list:
+    class: Dropcat\Command\MultiListCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command }
+  dropcat.command.multi:clone:
+    class: Dropcat\Command\MultiCloneCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: multi:clone }
+  dropcat.command.sites:backup:
+    class: Dropcat\Command\SitesBackupCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: sites:backup }
+  dropcat.command.reset:opcache:
+    class: Dropcat\Command\ResetOpcacheCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: reset:opcache }
+  dropcat.command.security:drupal:
+    class: Dropcat\Command\SecurityDrupalCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: security:drupal }
+  dropcat.services.n_wrapper_service:
+    class: Dropcat\Services\NWrapperService
+    arguments: [ '@symfony.console_output' ]
+  dropcat.services.database_service:
+    class: Dropcat\Services\DatabaseService
+    arguments: [ '@symfony.console_output' ]
+  dropcat.command.locale:update:
+    class: Dropcat\Command\LocaleUpdateCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: locale:update }

@@ -2,13 +2,13 @@
 
 namespace Dropcat\Command;
 
-use Dropcat\Lib\NvmCommand;
+use Dropcat\Lib\NCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
 
-class RunNpmInstallCommand extends NvmCommand
+class RunNpmInstallCommand extends NCommand
 {
     protected function configure()
     {
@@ -29,14 +29,7 @@ To override config in dropcat.yml, using options:
                         InputOption::VALUE_REQUIRED,
                         'Path to .nvmrc file',
                         $this->configuration->nodeNvmRcFile()
-                    ),
-                    new InputOption(
-                        'nvm-path',
-                        'np',
-                        InputOption::VALUE_REQUIRED,
-                        'Path to nvm directory',
-                        $this->configuration->nodeNvmDirectory()
-                    ),
+                    )
                 ]
             )
             ->setHelp($HelpText);
@@ -46,25 +39,11 @@ To override config in dropcat.yml, using options:
     {
         $output->writeln('<info>' . $this->start . ' node:npm-install started</info>');
 
-        $nvmDir = $input->getOption('nvm-path');
-        $this->nvmService->setNvmDir($nvmDir);
-        $success = $this->nvmService->install($input->getOption('nvmrc'));
-        if (!$success) {
-            throw new \Exception("NVM install failed.");
+        if (!$this->nService->useAndRunCommand('npm install')) {
+            $output->writeln('<info>' . $this->error . ' node:npm-install failed</info>');
+            throw new \Exception("Theme building failed.");
         }
 
-        $npmInstall = Process::fromShellCommandline(". $nvmDir/nvm.sh && npm install");
-        $npmInstall->setTimeout(600);
-        $success = $npmInstall->run();
-        echo 'NPM install exit code: ' . $npmInstall->getExitCode();
-        $errOut = $npmInstall->getErrorOutput();
-        if (!empty($errOut)) {
-            $output->writeln('<error>NPM install ErrorOut: ' . $errOut . '</error>');
-        }
-        $output->writeln('<comment>NPM install StdOut: ' . $npmInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
-        if (!$success) {
-            throw new \Exception("NPM install failed.");
-        }
         $output->writeln('<info>' . $this->heart . ' node:npm-install finished</info>');
 
         return self::SUCCESS;

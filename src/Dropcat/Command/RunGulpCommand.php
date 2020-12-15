@@ -2,12 +2,12 @@
 
 namespace Dropcat\Command;
 
-use Dropcat\Lib\NvmCommand;
+use Dropcat\Lib\NCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 
-class RunGulpCommand extends NvmCommand
+class RunGulpCommand extends NCommand
 {
     protected function configure()
     {
@@ -65,7 +65,7 @@ class RunGulpCommand extends NvmCommand
             $env = 'NODE_ENV=' . $nodeEnv;
         }
 
-        if (!$this->nvmService->useAndRunCommand("$env node_modules/gulp/bin/gulp.js --cwd $gulpDir $gulpOptions")) {
+        if (!$this->nService->useAndRunCommand("$env node_modules/gulp/bin/gulp.js --cwd $gulpDir $gulpOptions")) {
             return self::FAILURE;
         }
 

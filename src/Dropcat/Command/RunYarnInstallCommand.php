@@ -2,13 +2,12 @@
 
 namespace Dropcat\Command;
 
-use Dropcat\Lib\NvmCommand;
+use Dropcat\Lib\NCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Process\Process;
 
-class RunYarnInstallCommand extends NvmCommand
+class RunYarnInstallCommand extends NCommand
 {
     protected function configure()
     {
@@ -26,10 +25,10 @@ To override config in dropcat.yml, using options:
                     new InputOption(
                         'nvmrc',
                         'nc',
-                        InputOption::VALUE_OPTIONAL,
+                        InputOption::VALUE_REQUIRED,
                         'Path to .nvmrc file',
                         $this->configuration->nodeNvmRcFile()
-                    ),
+                    )
                 ]
             )
             ->setHelp($HelpText);
@@ -39,12 +38,10 @@ To override config in dropcat.yml, using options:
     {
         $output->writeln('<info>' . $this->start . ' node:yarn-install started</info>');
 
-        $this->nvmService->install($input->getOption('nvmrc'));
-
-        $yarnInstall = Process::fromShellCommandline("bash -cl 'yarn install'");
-        $yarnInstall->setTimeout(600);
-        $yarnInstall->mustRun();
-        $output->writeln('<comment>' . $yarnInstall->getOutput() . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
+        if (!$this->nService->useAndRunCommand('yarn install')) {
+            $output->writeln('<info>' . $this->error . ' node:yarn-install failed</info>');
+            throw new \Exception("Theme building failed.");
+        }
 
         $output->writeln('<info>' . $this->heart . ' node:yarn-install finished</info>');
 
