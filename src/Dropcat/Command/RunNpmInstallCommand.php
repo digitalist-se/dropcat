@@ -55,7 +55,8 @@ To override config in dropcat.yml, using options:
 
         $npmInstall = Process::fromShellCommandline(". $nvmDir/nvm.sh && npm install");
         $npmInstall->setTimeout(600);
-        $success = $npmInstall->mustRun();
+        $success = $npmInstall->run();
+        echo 'NPM install exit code: ' . $npmInstall->getExitCode();
         $errOut = $npmInstall->getErrorOutput();
         if (!empty($errOut)) {
             $output->writeln('<error>NPM install ErrorOut: ' . $errOut . '</error>');

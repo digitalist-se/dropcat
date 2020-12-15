@@ -64,7 +64,7 @@ class NvmWrapperService
         $this->output->writeln("<comment>NVM install StdOut: " . $nvmInstall->getOutput() . "</comment>", OutputInterface::VERBOSITY_VERBOSE);
         $this->output->writeln('<error>NVM install ErrorOut: ' . $nvmInstall->getErrorOutput() . '</error>', OutputInterface::VERBOSITY_VERBOSE);
 
-        return $exitCode === 0;
+        return $exitCode === 0 || $exitCode === 3;
     }
 
     /**
@@ -121,7 +121,9 @@ class NvmWrapperService
             $this->output->writeln('<error>NVM install check – StdOut: ' . $stdOut . '</error>');
         }
 
-        return $exitCode === 0;
+        // When a specific version is not installed yet, nvm returns 3.
+        // That's fine for us though, we just want to know if nvm itself is installed.
+        return $exitCode === 0 || $exitCode === 3;
     }
 
     /**
