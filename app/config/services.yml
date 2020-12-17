@@ -225,3 +225,9 @@ services:
     lazy: true
     tags:
       - { name: console.command, command: locale:update }
+  dropcat.command.clean:deploys:
+    class: Dropcat\Command\CleanDeploysCommand
+    arguments: [ '@DropcatContainer','@dropcat.configuration' ]
+    lazy: true
+    tags:
+      - { name: console.command, command: clean:deploys }
