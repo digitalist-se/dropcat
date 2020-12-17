@@ -61,7 +61,7 @@ To override config in dropcat.yml, using options:
             $output->writeln('using config: ' . $config_name);
         }
 
-        $processCommand = ['drush', '@$drush_alias', 'cim', "$config_name", '-y'];
+        $processCommand = ['drush', "@$drush_alias", 'cim', "$config_name", '-y'];
 
         if ($output->isVerbose()) {
             $processCommand = array_merge($processCommand, ['-v']);

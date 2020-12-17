@@ -52,9 +52,9 @@ class LocaleUpdateCommand extends DropcatCommand {
         }
         $process->mustRun();
 
-        while($process->isRunning()) {
-            var_dump($process->getIncrementalOutput());
-            var_dump($process->getOutput());
+        while($process->isRunning() && $output->isVerbose()) {
+            $output->writeln($process->getIncrementalOutput());
+            $output->writeln($process->getOutput());
         }
         // Executes after the command finishes.
         if (!$process->isSuccessful()) {
