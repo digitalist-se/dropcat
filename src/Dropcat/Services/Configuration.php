@@ -540,6 +540,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     {
         if (isset($this->configuration['mysql']['environment']['host'])) {
             return $this->configuration['mysql']['environment']['host'];
+        } elseif (isset($_ENV['MYSQL_HOST'])) {
+            return $_ENV['MYSQL_HOST'];
         } else {
             return null;
         }
@@ -552,6 +554,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     {
         if (isset($this->configuration['mysql']['environment']['database'])) {
             return $this->configuration['mysql']['environment']['database'];
+        } elseif (isset($_ENV['MYSQL_DB'])) {
+            return $_ENV['MYSQL_DB'];
         } else {
             return null;
         }
@@ -564,6 +568,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     {
         if (isset($this->configuration['mysql']['environment']['user'])) {
             return $this->configuration['mysql']['environment']['user'];
+        }  elseif (isset($_ENV['MYSQL_USER'])) {
+            return $_ENV['MYSQL_USER'];
         } else {
             return null;
         }
@@ -576,6 +582,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     {
         if (isset($this->configuration['mysql']['environment']['port'])) {
             return $this->configuration['mysql']['environment']['port'];
+        } elseif (isset($_ENV['MYSQL_PORT'])) {
+            return $_ENV['MYSQL_PORT'];
         } else {
             return null;
         }
@@ -588,6 +596,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     {
         if (isset($this->configuration['mysql']['environment']['password'])) {
             return $this->configuration['mysql']['environment']['password'];
+        } elseif (isset($_ENV['MYSQL_PASSWORD'])) {
+            return $_ENV['MYSQL_PASSWORD'];
         } else {
             return null;
         }
