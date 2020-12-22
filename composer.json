@@ -36,7 +36,8 @@
     "webflo/drupal-finder": "^1.2",
     "symfony/finder": "^5.0",
     "ext-json": "*",
-    "ext-mysqli": "*"
+    "ext-mysqli": "*",
+    "symfony/dotenv": "^5.2"
   },
   "bin": [
     "app/dropcat"

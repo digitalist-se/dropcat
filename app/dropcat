@@ -25,6 +25,7 @@ use Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\RuntimeInstantiator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Console\Input\InputOption;
 use Composer\XdebugHandler\XdebugHandler;
@@ -60,8 +61,6 @@ foreach ($commands as $id => $tags) {
 // Add them to the application.
 $application->addCommands($commandsToInit);
 
-
-
 // Adding a global option (env).
 $dispatcher = new EventDispatcher();
 $application->setDispatcher($dispatcher);
@@ -80,6 +79,12 @@ $drupalFinder = new DrupalFinder();
 if ($drupalFinder->locateRoot(getcwd())) {
     define('DROPCAT_DRUPAL_ROOT', $drupalFinder->getDrupalRoot());
     define('DROPCAT_COMPOSER_ROOT', $drupalFinder->getComposerRoot());
+}
+
+// Load .env from the project root folder.
+if (file_exists(DROPCAT_COMPOSER_ROOT.'/.env')) {
+    $dotenv = new Dotenv();
+    $dotenv->load(DROPCAT_COMPOSER_ROOT . '/.env');
 }
 
 $application->run(null, $output);
