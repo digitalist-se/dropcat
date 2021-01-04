@@ -296,7 +296,7 @@ To run with default options (using config from dropcat.yml in the currrent dir):
                         }
                         $output->writeln("<info>$this->mark config split is enabled for $site</info>");
 
-                        $cmd = ["drush", "$alias", "csex", "$config_split_settings", -"y"];
+                        $cmd = ["drush", "@$alias", "csex", "$config_split_settings", -"y"];
                         $process = new Process($cmd);
                         $process->setTimeout(9999);
                         $process->run();
