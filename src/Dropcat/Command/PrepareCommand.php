@@ -335,7 +335,7 @@ To override config in dropcat.yml, using options:
             'ssh-port' => $ssh_port,
             'mysql-host' => $mysql_host,
             'mysql-user' => $mysql_user,
-            'mysql-password' => getenv('MYSQL_PASSWORD'),
+            'mysql-password' => $mysql_password,
             'mysql-db' => $mysql_db,
             'mysql-port' => $mysql_port,
             'timeout' => $timeout,

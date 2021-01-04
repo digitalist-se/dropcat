@@ -22,6 +22,8 @@ if (file_exists(CLI_ROOT . '/vendor/autoload.php')) {
 
 use DrupalFinder\DrupalFinder;
 use Symfony\Bridge\ProxyManager\LazyProxy\Instantiator\RuntimeInstantiator;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -62,8 +64,6 @@ foreach ($commands as $id => $tags) {
 $application->addCommands($commandsToInit);
 
 // Adding a global option (env).
-$dispatcher = new EventDispatcher();
-$application->setDispatcher($dispatcher);
 $application->getDefinition()->addOptions([
     new InputOption(
         'env',
@@ -74,17 +74,31 @@ $application->getDefinition()->addOptions([
     )
 ]);
 
-// Get webroot and composer root.
-$drupalFinder = new DrupalFinder();
-if ($drupalFinder->locateRoot(getcwd())) {
-    define('DROPCAT_DRUPAL_ROOT', $drupalFinder->getDrupalRoot());
-    define('DROPCAT_COMPOSER_ROOT', $drupalFinder->getComposerRoot());
-}
+// Loads env vars before the command is executed.
+// They are available to the command itself but not to other services.
+$dispatcher = new EventDispatcher();
+$dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) {
+    // Get webroot and composer root.
+    $drupalFinder = new DrupalFinder();
+    if (!defined('DROPCAT_COMPOSER_ROOT')) {
+        if ($drupalFinder->locateRoot(getcwd())) {
+            define('DROPCAT_COMPOSER_ROOT', $drupalFinder->getComposerRoot());
+        }
+    }
+    if (!defined('DROPCAT_DRUPAL_ROOT')) {
+        if ($drupalFinder->locateRoot(getcwd())) {
+            define('DROPCAT_DRUPAL_ROOT', $drupalFinder->getDrupalRoot());
+        }
+    }
 
-// Load .env from the project root folder.
-if (file_exists(DROPCAT_COMPOSER_ROOT.'/.env')) {
-    $dotenv = new Dotenv();
-    $dotenv->load(DROPCAT_COMPOSER_ROOT . '/.env');
-}
+    // Loads .env, .env.local, and .env.$APP_ENV.local or .env.$APP_ENV
+    if (file_exists(DROPCAT_COMPOSER_ROOT . '/.env')) {
+        $dotenv = new Dotenv();
+        $dotenv->usePutenv();
+        $dotenv->loadEnv(DROPCAT_COMPOSER_ROOT . '/.env');
+    }
+});
+
+$application->setDispatcher($dispatcher);
 
 $application->run(null, $output);

@@ -1,6 +1,9 @@
 <?php
+
 namespace Dropcat\Services;
 
+use DrupalFinder\DrupalFinder;
+use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Console\Input\ArgvInput;
 
@@ -54,6 +57,22 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             $this->configuration = $configs;
         } else {
             $this->configuration = null;
+        }
+
+        // We need to load here again, because env vars are not available in this service otherwise.
+        // Get webroot and composer root.
+        if (!defined('DROPCAT_COMPOSER_ROOT')) {
+            $drupalFinder = new DrupalFinder();
+            if ($drupalFinder->locateRoot(getcwd())) {
+                define('DROPCAT_COMPOSER_ROOT', $drupalFinder->getComposerRoot());
+            }
+        }
+
+        // Loads .env, .env.local, and .env.$APP_ENV.local or .env.$APP_ENV
+        if (file_exists(DROPCAT_COMPOSER_ROOT . '/.env')) {
+            $dotenv = new Dotenv();
+            $dotenv->usePutenv();
+            $dotenv->loadEnv(DROPCAT_COMPOSER_ROOT . '/.env');
         }
     }
 
@@ -246,6 +265,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Get user to login to server for backups.
      */
@@ -400,7 +420,6 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     }
 
 
-
     /**
      * Gets the sites backup path.
      */
@@ -457,7 +476,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
         if (isset($this->configuration['site']['environment']['url'])) {
             return $this->configuration['site']['environment']['url'];
         } else {
-             return null;
+            return null;
         }
     }
 
@@ -497,6 +516,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Gets all ignore-files from config-file.
      */
@@ -510,8 +530,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     }
 
     /**
-    * Gets varnish IP from config-file.
-    */
+     * Gets varnish IP from config-file.
+     */
     public function deployVarnishIP()
     {
         if (isset($this->configuration['deploy']['varnish_ip'])) {
@@ -522,8 +542,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     }
 
     /**
-    * Gets varnish port from config-file.
-    */
+     * Gets varnish port from config-file.
+     */
     public function deployVarnishPort()
     {
         if (isset($this->configuration['deploy']['varnish_port'])) {
@@ -659,7 +679,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
         return $this->configuration['node']['nvm_directory'] ?? NULL;
     }
 
-    public function nodeNvmRcFile() : string
+    public function nodeNvmRcFile(): string
     {
         if (isset($this->configuration['node']['nvmrc_file'])) {
             return $this->configuration['node']['nvmrc_file'];
@@ -676,6 +696,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function gulpOptions()
     {
         if (isset($this->configuration['node']['gulp_options'])) {
@@ -684,6 +705,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return '';
         }
     }
+
     public function nodeEnvironment()
     {
         if (isset($this->configuration['node']['environment'])) {
@@ -693,6 +715,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function localEnvironmentRsyncFrom()
     {
         if (isset($this->configuration['local']['environment']['rsync_from'])) {
@@ -702,6 +725,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function remoteEnvironmentRsyncTo()
     {
         if (isset($this->configuration['remote']['environment']['rsync_to'])) {
@@ -711,6 +735,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Get ssh port for local use.
      */
@@ -722,6 +747,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Get server for local use.
      */
@@ -733,6 +759,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Get ssh user for local use.
      */
@@ -744,6 +771,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function remoteEnvironmentRsyncFrom()
     {
         if (isset($this->configuration['remote']['environment']['rsync_from'])) {
@@ -753,6 +781,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function localEnvironmentRsyncTo()
     {
         if (isset($this->configuration['local']['environment']['rsync_to'])) {
@@ -762,6 +791,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function vhostFileName()
     {
         if (isset($this->configuration['vhost']['file_name'])) {
@@ -771,6 +801,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function vhostTarget()
     {
         if (isset($this->configuration['vhost']['target'])) {
@@ -780,6 +811,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return '/etc/httpd/conf.d';
         }
     }
+
     public function vhostPort()
     {
         if (isset($this->configuration['vhost']['port'])) {
@@ -789,6 +821,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return '80';
         }
     }
+
     public function vhostDocumentRoot()
     {
         if (isset($this->configuration['vhost']['document_root'])) {
@@ -798,6 +831,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     public function vhostServerName()
     {
         if (isset($this->configuration['vhost']['server_name'])) {
@@ -833,6 +867,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Gets all server extras.
      */
@@ -857,6 +892,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Absolute path to db dump.
      */
@@ -869,9 +905,10 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
-  /**
-   * Db user.
-   */
+
+    /**
+     * Db user.
+     */
     public function trackerDbUser()
     {
         if (isset($this->configuration['tracker']['db-user'])) {
@@ -882,9 +919,9 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
         }
     }
 
-  /**
-   * Db pass.
-   */
+    /**
+     * Db pass.
+     */
     public function trackerDbPass()
     {
         if (isset($this->configuration['tracker']['db-pass'])) {
@@ -894,9 +931,10 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
-  /**
-   * Db pass.
-   */
+
+    /**
+     * Db pass.
+     */
     public function trackerDbName()
     {
         if (isset($this->configuration['tracker']['db-name'])) {
@@ -906,9 +944,10 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
-  /**
-   * Db host.
-   */
+
+    /**
+     * Db host.
+     */
     public function trackerDbHost()
     {
         if (isset($this->configuration['tracker']['db-host'])) {
@@ -918,6 +957,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * Id of tracker.
      */
@@ -930,6 +970,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * site path to tracker.
      */
@@ -942,7 +983,8 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
-     /**
+
+    /**
      * trackerfile ro use.
      */
     public function trackerFile()
@@ -967,13 +1009,15 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return null;
         }
     }
+
     /**
      * create site
      */
     public function createSite()
     {
-            return null;
+        return null;
     }
+
     /**
      * Sync config name
      */
@@ -985,6 +1029,7 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
             return '../sync';
         }
     }
+
     /**
      * Sync config name
      */
