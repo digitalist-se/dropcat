@@ -7,7 +7,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 use Exception;
 
 class DbImportCommand extends DropcatCommand
@@ -72,21 +71,19 @@ To override config in dropcat.yml, using options:
             return 1;
         }
 
+        $output->writeln('<comment>Using drush alias: ' . $drush_alias . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
+
         // Remove '@' if the alias beginns with it.
         $drush_alias = preg_replace('/^@/', '', $drush_alias);
 
         $output->writeln('<info>' . $this->start . ' db-import started</info>');
 
         if (file_exists($path_to_db)) {
-            if ($output->isVerbose()) {
-                $output->writeln("<comment>Db exists at $path_to_db</comment>");
-            }
+            $output->writeln("<comment>Db exists at $path_to_db</comment>", OutputInterface::VERBOSITY_VERBOSE);
             $file_type = pathinfo($path_to_db);
             switch ($file_type['extension']) {
                 case "gz":
-                    if ($output->isVerbose()) {
-                        $output->writeln("<comment>Filetype is gz</comment>");
-                    }
+                    $output->writeln("<comment>Filetype is gz</comment>", OutputInterface::VERBOSITY_VERBOSE);
                     // Using bash redirection, needs fromShellCommandLine
                     $process = Process::fromShellCommandline(
                         "gunzip $path_to_db --force -c > $db_dump"
@@ -95,33 +92,47 @@ To override config in dropcat.yml, using options:
                     $process->mustRun();
                     $output->writeln('<comment>' . $process->getOutput()
                       . '</comment>');
-                    $output->writeln("<comment>un-gzipped $path_to_db to $db_dump</comment>");
+                    $output->writeln("<comment>unzipped $path_to_db to $db_dump</comment>");
                     break;
                 case "sql":
                     $output->writeln("<comment>Filetype is sql</comment>");
                     break;
                 default: // Handle no file extension
-                    $output->writeln("only gzip (.gz) & .sql is supported.");
-                    return 1;
+                    throw new \LogicException('Only gzip (.gz) & .sql is supported.');
             }
         } else {
-            $output->writeln("Db does not exist at $path_to_db");
-            return 1;
+            throw new Exception("Database backup was not found at: $path_to_db");
         }
         $sqlDropProcess = new Process(['drush', "@$drush_alias", 'sql-drop', '-y']);
         $sqlDropProcess->setTimeout($timeout);
         $sqlDropProcess->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $sqlDropProcess->getOutput() . '</comment>');
+        $stdOut = $sqlDropProcess->getOutput();
+        if (!empty($stdOut)) {
+            $output->writeln('<comment>SQL Drop StdOut:</comment>', OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln('<comment>' . $stdOut . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
         }
-        
+        $errOut = $sqlDropProcess->getErrorOutput();
+        if (!empty($errOut)) {
+            $output->writeln('<error>SQL Drop Error Output:</error>');
+            $output->writeln('<error>' . $errOut . '</error>');
+            throw new Exception('There was an error while dropping the database.');
+        }
+
         $sqlImportProcess = Process::fromShellCommandline("drush @$drush_alias sql-cli < $db_dump");
         $sqlImportProcess->setTimeout($timeout);
         $sqlImportProcess->mustRun();
-        if ($output->isVerbose()) {
-            $output->writeln('<comment>' . $sqlImportProcess->getOutput() . '</comment>');
+        $stdOut = $sqlImportProcess->getOutput();
+        if (!empty($stdOut)) {
+            $output->writeln('<comment>SQL Import StdOut:</comment>', OutputInterface::VERBOSITY_VERBOSE);
+            $output->writeln('<comment>' . $stdOut . '</comment>', OutputInterface::VERBOSITY_VERBOSE);
         }
-        
+        $errOut = $sqlImportProcess->getErrorOutput();
+        if (!empty($errOut)) {
+            $output->writeln('<error>SQL Import Error Output:</error>');
+            $output->writeln('<error>' . $errOut . '</error>');
+            throw new Exception('There was an error while importing the database.');
+        }
+
         $output->writeln('<info>' . $this->heart . ' db-import finished</info>');
         
         return 0;
