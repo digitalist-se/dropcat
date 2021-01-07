@@ -118,7 +118,7 @@ To override config in dropcat.yml, using options:
                 null,
                 InputOption::VALUE_OPTIONAL,
                 'Drush alias',
-                $this->configuration->siteEnvironmentDrushAlias()
+                $this->configuration->getFullDrushAlias()
             ),
               ]
         )

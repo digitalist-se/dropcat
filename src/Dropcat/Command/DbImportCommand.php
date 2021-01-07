@@ -30,7 +30,7 @@ To override config in dropcat.yml, using options:
                         'd',
                         InputOption::VALUE_OPTIONAL,
                         'Drush alias to import db from',
-                        $this->configuration->siteEnvironmentDrushAlias()
+                        $this->configuration->getFullDrushAlias()
                     ),
                     new InputOption(
                         'db_import',

@@ -129,7 +129,7 @@ class Write {
             if ($verbose) {
                 $this->output->writeln("<info>Successfully written $filename</info>");
             }
-            $this->output->writeln("<info>$this->mark drush alias @" . $conf['drush-alias-name'] .
+            $this->output->writeln("<info>$this->mark drush alias @" . $conf['site-name'] . '.'. $conf['drush-alias-name'] .
                 " created. Run <comment>drush sa</comment> to see available aliases.</info>");
 
             return 0;

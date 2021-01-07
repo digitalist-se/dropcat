@@ -29,7 +29,7 @@ To override config in dropcat.yml, using options:
                 'd',
                 InputOption::VALUE_OPTIONAL,
                 'Drush alias',
-                $this->configuration->siteEnvironmentDrushAlias()
+                $this->configuration->getFullDrushAlias()
               ),
             ]
           )
@@ -48,16 +48,21 @@ To override config in dropcat.yml, using options:
             $out = 'Running command: ' . $process->getCommandLine() . "\n";
             $output->writeln("<comment>$out</comment>");
         }
-        $process->run();
-        // Executes after the command finishes.
-        if (!$process->isSuccessful()) {
-            $msg = $process->getErrorOutput();
-            if (empty($msg)) {
-                $msg = $process->getOutput();
-            }
-            $output->writeln("<error>Error: $msg</error>");
 
-            return $process->getExitCode();
+        $process->run();
+
+        // Executes after the command finishes.
+        $stdOut = $process->getOutput();
+        if (!empty($stdOut)) {
+            $output->writeln("<comment>$stdOut</comment>");
+        }
+
+        $errorOutput = $process->getErrorOutput();
+        if (!$process->isSuccessful() || !empty($errorOutput)) {
+            $output->writeln("<error>Error: $errorOutput</error>");
+            $output->writeln('<error>cache:rebuild failed</error>');
+
+            return 1;
         }
 
         $output->writeln('<info>cache:rebuild finished</info>');

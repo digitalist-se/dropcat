@@ -397,9 +397,20 @@ class Configuration extends DropcatConfigurationBase implements DropcatConfigura
     }
 
     /**
-     * Gets the drush alias.
+     * Gets the drush alias from the config file.
+     * Only used for _writing_ the drush alias.
+     * See @getFullDrushAlias to get the drush alias for usage.
      */
     public function siteEnvironmentDrushAlias()
+    {
+        return $drushAlias = $this->configuration['site']['environment']['drush_alias'] ?? null;
+    }
+
+    /**
+     * Gets the drush alias.
+     * For running commands like "drush @env.alias st".
+     */
+    public function getFullDrushAlias()
     {
         $name = $this->configuration['site']['environment']['name'] ?? null;
         $drushAlias = $this->configuration['site']['environment']['drush_alias'] ?? null;

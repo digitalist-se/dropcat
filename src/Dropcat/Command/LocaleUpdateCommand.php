@@ -25,7 +25,7 @@ class LocaleUpdateCommand extends DropcatCommand {
                 'd',
                 InputOption::VALUE_OPTIONAL,
                 'Drush alias',
-                $this->configuration->siteEnvironmentDrushAlias()
+                $this->configuration->getFullDrushAlias()
               ),
             ]
           )
