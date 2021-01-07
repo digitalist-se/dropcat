@@ -13,7 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class CheckDrupal
 {
     public $dir;
-    public $fs;
+    public Filesystem $fs;
 
     public function __construct()
     {
@@ -21,24 +21,31 @@ class CheckDrupal
         $this->fs = new Filesystem();
     }
 
-    public function isDrupal()
+    public function isDrupal(): bool
     {
-        return $this->fs->exists($this->dir . '/web/core/core.api.php') ||
-        $this->fs->exists($this->dir . '/web/modules/block/block.info');
+        return $this->fs->exists($this->dir . '/web/core/core.api.php');
     }
 
-    public function version()
+    /**
+     * The composer.json of Drupal core contains this:
+     * '    "config": {
+     * '         "preferred-install": "dist",
+     * '         "autoloader-suffix": "Drupal9",
+     *  With either Drupal8 or Drupal9 depending on the version.
+     * @return string
+     * @throws \Exception
+     */
+    public function version(): string
     {
-        $checks = [
-          '8'   =>    '/web/core/core.api.php',
-          '7'   =>    '/web/misc/ajax.js',
-          '6'   =>    '/web/misc/ahah.js'
-        ];
-
-        foreach ($checks as $version => $path) {
-            if ($this->fs->exists($this->dir . $path)) {
-                return $version;
+        if ($this->fs->exists($this->dir . '/composer.json')) {
+            $composerJson = file_get_contents($this->dir . '/composer.json');
+            if (strpos($composerJson, 'Drupal9') !== false) {
+                return '9';
+            } elseif (strpos($composerJson, 'Drupal8') !== false) {
+                return '8';
             }
         }
+
+        throw new \Exception("Could not determine Drupal version.");
     }
 }

@@ -155,19 +155,11 @@ To run with default options (using config from dropcat.yml in the currrent dir):
         $version = $check->version();
 
         if ($version == '9') {
-            $output->writeln("<info>$this->mark this is a drupal 9 site</info>");
-        }
-        if ($version == '8') {
+            $output->writeln("<info>$this->mark this is a drupal 9 site <3</info>");
+        } elseif ($version == '8') {
             $output->writeln("<info>$this->mark this is a drupal 8 site</info>");
-        }
-        if ($version == '7') {
-            throw new Exception('Sorry, no support for Drupal 7');
-        }
-        if ($version == '6') {
-            throw new Exception('Sorry, no support for Drupal 6');
-        }
-        if (!isset($version) || $version == '') {
-            throw new Exception('version of drupal not recognised.');
+        } else {
+            throw new Exception('Only Drupal 8 or 9 is supported, sowwy (^-人-^)');
         }
 
         // Load tracker file, for each site drush alias.
