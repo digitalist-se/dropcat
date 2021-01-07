@@ -35,7 +35,7 @@ To override config in dropcat.yml, using options:
                         'd',
                         InputOption::VALUE_OPTIONAL,
                         'Drush alias',
-                        $this->configuration->getFullDrushAlias()
+                        $this->configuration->siteEnvironmentDrushAlias()
                     ),
                     new InputOption(
                         'server',
@@ -204,7 +204,7 @@ To override config in dropcat.yml, using options:
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $drush_alias = $input->getOption('drush-alias');
+        $create_drush_alias = $input->getOption('drush-alias');
         $server = $input->getOption('server');
         $user = $input->getOption('user');
         $ssh_port = $input->getOption('ssh-port');
@@ -230,7 +230,7 @@ To override config in dropcat.yml, using options:
             '-e',
         ], getenv('DROPCAT_ENV') ?: 'dev');
 
-        $output->writeln('<info>Drush alias default:' . $drush_alias . '</info>');
+        $output->writeln('<info>Drush alias default:' . $create_drush_alias . '</info>');
 
         $output->writeln('<info>' . $this->start . ' prepare started</info>');
         $verbose = false;
@@ -286,7 +286,7 @@ To override config in dropcat.yml, using options:
                         'alias-path' => $site_alias,
                     ],
                     'drush' => [
-                        'alias' => $drush_alias,
+                        'alias' => $create_drush_alias,
                     ]
                 ],
             ],
@@ -309,7 +309,7 @@ To override config in dropcat.yml, using options:
             if ($check->isDrupal()) {
                 $drush_alias_conf = [
                     'env' => $env,
-                    'drush-alias-name' => $drush_alias, // Not used in creation
+                    'drush-alias-name' => $create_drush_alias,
                     'site-name' => $site_name,
                     'server' => $server,
                     'user' => $user,
@@ -327,8 +327,12 @@ To override config in dropcat.yml, using options:
         }
 
         // Create database if it does not exist.
+        $mysqlRootUser = getenv('MYSQL_ROOT_USER');
+        $mysqlRootPass = getenv('MYSQL_ROOT_PASSWORD');
+        if ($mysqlRootUser === false || $mysqlRootPass === false) {
+            throw new Exception("You need to define the MYSQL_ROOT_USER and the MYSQL_ROOT_PASSWORD env variables.");
+        }
         $new_db_conf = [
-            'drush_alias' => $drush_alias,
             'server' => $server,
             'user' => $user,
             'identityFile' => $identityFile,
@@ -339,8 +343,8 @@ To override config in dropcat.yml, using options:
             'mysql-db' => $mysql_db,
             'mysql-port' => $mysql_port,
             'timeout' => $timeout,
-            'mysql-root-user' => getenv('MYSQL_ROOT_USER'),
-            'mysql-root-pass' => getenv('MYSQL_ROOT_PASSWORD'),
+            'mysql-root-user' => $mysqlRootUser,
+            'mysql-root-pass' => $mysqlRootPass,
         ];
         if (isset($db_dump_path)) {
             $new_db_conf['db-dump-path'] = $db_dump_path;
