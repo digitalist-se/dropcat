@@ -286,7 +286,7 @@ To override config in dropcat.yml, using options:
                         'alias-path' => $site_alias,
                     ],
                     'drush' => [
-                        'alias' => $create_drush_alias,
+                        'alias' => $this->configuration->getFullDrushAlias(),
                     ]
                 ],
             ],
